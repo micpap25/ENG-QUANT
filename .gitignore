@@ -1,2 +1,3 @@
-*.json
+src/*.json
+experiments/*.json
 MODEL_JSON_FORMAT.md
