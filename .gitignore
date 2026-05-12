@@ -1,3 +1,3 @@
-src/*.json
-experiments/*.json
+*.json
+__pycache__/
 MODEL_JSON_FORMAT.md

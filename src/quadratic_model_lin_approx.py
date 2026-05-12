@@ -149,4 +149,4 @@ if __name__ == "__main__":
     F_NAME = "toy.json"
 
     quadratic_model_lin_approx(EPS, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE, 
-                                SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, F_NAME)
+                                SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, F_NAME, verbose=True)

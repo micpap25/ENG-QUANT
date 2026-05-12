@@ -232,4 +232,4 @@ if __name__ == "__main__":
     UP=5.0
     toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS,
                         GAMMA, LAMBD, EPS, DELTA,
-                        LX, LP, LF, UP)
+                        LX, LP, LF, UP, verbose=True)
