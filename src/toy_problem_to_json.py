@@ -222,14 +222,14 @@ if __name__ == "__main__":
     F_UPPER_BOUNDS=True
 
     # Capacity / demand parameters
-    GAMMA=1.0
+    GAMMA=2.0
     LAMBD=1.0
     EPS=0.1
     DELTA=0.1
 
     # Lower bounds and upper bound on pressure
     LX=LP=LF=0.0
-    UP=5.0
+    UP=10.0
     toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS,
                         GAMMA, LAMBD, EPS, DELTA,
                         LX, LP, LF, UP, verbose=True)
