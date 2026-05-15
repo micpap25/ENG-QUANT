@@ -16,7 +16,7 @@ def condition_number_no_bounds(f_name: str = "linear_approx.json",
     # Assign the variables to rows
 
     var_name_to_row_index = {}
-    for i, (var_name, _) in enumerate(variables.items(), start=0):
+    for i, var_name in enumerate(variables.keys(), start=0):
         var_name_to_row_index[var_name] = i
 
     # Create the matrix of non-bound constraints

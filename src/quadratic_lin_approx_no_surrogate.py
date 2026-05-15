@@ -74,7 +74,7 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                     constraint["body"]["quadratic"] = []
                     m = float((fun_point_2 - fun_point_1) / lambd)
                     constraint["body"]["constant"] += fun_point_1 - m*point_1
-                    constraint["body"]["linear"].append([{"var": quadratic_variable, "coef": m}])
+                    constraint["body"]["linear"].append({"var": quadratic_variable, "coef": m})
                     constraint_name = quadratic_variable + "_inner_lin_approx_" + str(i)
                     linear_approx_constraints.append(tuple((constraint_name, constraint)))
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     EPS = 5
 
     # Whether to do an inner or outer approximation
-    OUTER_APPROXIMATION = False
+    OUTER_APPROXIMATION = True
 
     # File to import the quadratic model from
     F_NAME = "toy.json"

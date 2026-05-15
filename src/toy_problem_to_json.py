@@ -215,21 +215,21 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
 
 if __name__ == "__main__":
     # Number of copies of the network in the system
-    N=1
+    N=20
 
     # Whether the production and flow variables have upper bounds
     X_UPPER_BOUNDS=True
     F_UPPER_BOUNDS=True
 
     # Capacity / demand parameters
-    GAMMA=2.0
+    GAMMA=1.0
     LAMBD=1.0
     EPS=0.1
     DELTA=0.1
 
     # Lower bounds and upper bound on pressure
     LX=LP=LF=0.0
-    UP=10.0
+    UP=5.0
     toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS,
                         GAMMA, LAMBD, EPS, DELTA,
                         LX, LP, LF, UP, verbose=True)

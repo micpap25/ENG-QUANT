@@ -1,60 +1,79 @@
 import json
-import numpy as np
+import gurobipy as gp
+from gurobipy import GRB
 
 # Take in an LP from a JSON and solve it
 # Use this to benchmark the linear approximation
 def solve_lp(f_name: str = "linear_approx.json",
-                verbose: bool = False) -> float:
+                verbose: bool = False) -> tuple[float, float]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     variables = data["variables"]
     constraints = data["constraints"]
-    n_variables = len(variables)
-    n_constraints = len(constraints)
+    objective = data["objectives"]["obj"]
 
-    # Create the matrix of the bound constraints
-    # Also assign the variables to rows
-
-    var_name_to_row_index = {}
-    bound_constraint_matrix = None
-    for i, (var_name, var_data) in enumerate(variables.items(), start=0):
-        var_name_to_row_index[var_name] = i
-
-        # Lower bound
-        if var_data["lower"] is not None:
-            row = np.zeros(n_variables)
-            row[i] = 1.0
-            if bound_constraint_matrix is None:
-                bound_constraint_matrix = row
+    # Create a new model
+    m = gp.Model("lp_from_json")
+    m.Params.OutputFlag = 0
+    
+    # Assign the variable names to Gurobi variables
+    var_name_to_gurobi_var = {}
+    for var_name, variable in variables.items():
+        if variable["lower"] is not None:
+            if variable["upper"] is not None:
+                x = m.addVar(lb=variable["lower"], ub=variable["upper"], vtype=GRB.CONTINUOUS, name=var_name)
             else:
-                bound_constraint_matrix = np.vstack((bound_constraint_matrix, row))
-
-        # Upper bound
-        if var_data["upper"] is not None:
-            row = np.zeros(n_variables)
-            row[i] = -1.0
-            if bound_constraint_matrix is None:
-                bound_constraint_matrix = row
+                x = m.addVar(lb=variable["lower"], vtype=GRB.CONTINUOUS, name=var_name)
+        else:
+            if variable["upper"] is not None:
+                x = m.addVar(ub=variable["upper"], vtype=GRB.CONTINUOUS, name=var_name)
             else:
-                bound_constraint_matrix = np.vstack((bound_constraint_matrix, row))
+                x = m.addVar(vtype=GRB.CONTINUOUS, name=var_name)
 
-    # Create the matrix of non-bound constraints
-    constraint_matrix = np.zeros((n_constraints, n_variables))
+        var_name_to_gurobi_var[var_name] = x
 
-    for i, constraint_data in enumerate(constraints.values(), start=0):
+    # cost vector
+    c = gp.LinExpr()
+    for term in objective["expr"]["linear"]:
+        variable = var_name_to_gurobi_var[term["var"]]
+        c += term["coef"] * variable
+    c += objective["expr"]["constant"]
+    if objective["sense"] == "minimize":
+        m.setObjective(c, sense=GRB.MINIMIZE)
+    else:
+        m.setObjective(c, sense=GRB.MAXIMIZE)
+
+    # each constraint in the problem
+    for constraint_name, constraint_data in constraints.items():
         assert len(constraint_data["body"]["quadratic"]) == 0
         linear_data = constraint_data["body"]["linear"]
+        a = gp.LinExpr()
         for lin_variable in linear_data:
-            j = var_name_to_row_index[lin_variable["var"]]
-            constraint_matrix[i, j] = lin_variable["coef"]
+            x = var_name_to_gurobi_var[lin_variable["var"]]
+            a += lin_variable["coef"] * x
+        a += constraint_data["body"]["constant"]
 
-    A = np.vstack((bound_constraint_matrix, constraint_matrix))
+        # I am assuming here that there won't ever be a "double" constraint
+        if constraint_data["equality"]:
+            m.addConstr(a == constraint_data["lower"], constraint_name)
+        elif constraint_data["lower"] is None:
+            m.addConstr(a <= constraint_data["upper"], constraint_name)
+        else:
+            m.addConstr(a >= constraint_data["lower"], constraint_name)
+    
+    # solve the problem
+    m.optimize()
 
     if verbose:
-        print(A)
+        for variable, gurobi_variable in var_name_to_gurobi_var.items():
+            print(variable + ": " + str(gurobi_variable.X))
 
-    return np.linalg.cond(A)
+    return m.ObjVal, m.Runtime
+
+
 
 if __name__ == "__main__":
-    print(solve_lp(verbose=True))
+    val, time = solve_lp(verbose=True)
+    print("Obj val: " + str(val))
+    print("Time: " + str(time))

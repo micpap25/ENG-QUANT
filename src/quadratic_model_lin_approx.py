@@ -133,10 +133,10 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
 
 if __name__ == "__main__":
     # The number of linear constraints to use per quadratic constraint
-    EPS = 5
+    EPS = 10
 
     # Whether to do an inner or outer approximation
-    OUTER_APPROXIMATION = False
+    OUTER_APPROXIMATION = True
 
     # Whether the coefficient is part of the surrogate
     COEFFICIENT_SURROGATE = True
