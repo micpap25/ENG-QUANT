@@ -5,13 +5,15 @@ from src.variable_definitions import (
     setup_universal_var,
     setup_universal_lineq,
     setup_universal_linineq,
-    setup_universal_quadineq
+    setup_universal_quadineq,
+    setup_universal_quadeq
 )
 
-# Produces a convex QCP toy problem for GasNet
-def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool, 
+# Produces a QCP toy problem for GasNet
+def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
                         gamma: float, lambd: float, eps: float, delta: float,
-                        lx: float, lp: float, lf: float, up: float, verbose: str = False) -> None:
+                        lx: float, lp: float, lf: float, up: float, convex_relax: bool = True,
+                        f_out: str = "toy.json", verbose: str = False) -> None:
 
     d = lambd**2 + delta
     sum_d = n*d
@@ -141,9 +143,13 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
         constraints["fc[customer" + str(fc)+ "]"] = customer
 
     # Gas-Pressure Constraints
+    if convex_relax:
+        quad_setup_fun = setup_universal_quadineq
+    else:
+        quad_setup_fun = setup_universal_quadeq
 
     for gpc in range(1, n+1):
-        edge_1 = setup_universal_quadineq()
+        edge_1 = quad_setup_fun()
         edge_1["body"]["linear"] = [{"var": "p[transient" + str(gpc) + "]", "coef": 1.0}, \
                                     {"var": "p[production" + str(3*gpc - 2) + "]", "coef": -1.0}]
         edge_1["body"]["quadratic"] = [{"var1": "f[production" + str(3*gpc - 2) + "_transient" + str(gpc) + "]", \
@@ -151,7 +157,7 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
                                         "coef": gamma}]
         constraints["gpc[production" + str(3*gpc - 2) + "_transient" + str(gpc) + "]"] = edge_1
         
-        edge_2 = setup_universal_quadineq()
+        edge_2 = quad_setup_fun()
         edge_2["body"]["linear"] = [{"var": "p[transient" + str(gpc) + "]", "coef": 1.0}, \
                                     {"var": "p[production" + str(3*gpc - 1) + "]", "coef": -1.0}]
         edge_2["body"]["quadratic"] = [{"var1": "f[production" + str(3*gpc - 1) + "_transient" + str(gpc) + "]", \
@@ -159,7 +165,7 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
                                         "coef": gamma}]
         constraints["gpc[production" + str(3*gpc - 1) + "_transient" + str(gpc) + "]"] = edge_2
 
-        edge_3 = setup_universal_quadineq()
+        edge_3 = quad_setup_fun()
         edge_3["body"]["linear"] = [{"var": "p[customer" + str(gpc) + "]", "coef": 1.0}, \
                                     {"var": "p[production" + str(3*gpc) + "]", "coef": -1.0}]
         edge_3["body"]["quadratic"] = [{"var1": "f[production" + str(3*gpc) + "_customer" + str(gpc) + "]", \
@@ -167,7 +173,7 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
                                         "coef": gamma}]
         constraints["gpc[production" + str(3*gpc) + "_customer" + str(gpc) + "]"] = edge_3
 
-        edge_4 = setup_universal_quadineq()
+        edge_4 = quad_setup_fun()
         edge_4["body"]["linear"] = [{"var": "p[customer" + str(gpc) + "]", "coef": 1.0}, \
                                     {"var": "p[transient" + str(gpc) + "]", "coef": -1.0}]
         edge_4["body"]["quadratic"] = [{"var1": "f[transient" + str(gpc) + "_customer" + str(gpc) + "]", \
@@ -176,7 +182,7 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
         constraints["gpc[transient" + str(gpc) + "_customer" + str(fc) + "]"] = edge_4
 
         if gpc > 1:
-            edge_5 = setup_universal_quadineq()
+            edge_5 = quad_setup_fun()
             edge_5["body"]["linear"] = [{"var": "p[transient" + str(gpc) + "]", "coef": 1.0}, \
                                         {"var": "p[transient" + str(gpc - 1) + "]", "coef": -1.0}]
             edge_5["body"]["quadratic"] = [{"var1": "f[transient" + str(gpc-1) + "_transient" + str(gpc) + "]", \
@@ -210,12 +216,12 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
     data["objectives"] = {}
     data["objectives"]["obj"] = objectives
 
-    with open('toy.json', 'w', encoding='utf-8') as f:
+    with open(f_out, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
 
 if __name__ == "__main__":
     # Number of copies of the network in the system
-    N=5
+    N=100
 
     # Whether the production and flow variables have upper bounds
     X_UPPER_BOUNDS=True
@@ -230,6 +236,8 @@ if __name__ == "__main__":
     # Lower bounds and upper bound on pressure
     LX=LP=LF=0.0
     UP=5.0
+
     toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS,
                         GAMMA, LAMBD, EPS, DELTA,
-                        LX, LP, LF, UP, verbose=True)
+                        LX, LP, LF, UP,
+                        verbose=True)

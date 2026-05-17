@@ -1,4 +1,4 @@
-# Dictionary setup variables used throughout the code
+# Dictionary setup functions used throughout the code
 
 def setup_universal_var() -> dict:
     var = {}

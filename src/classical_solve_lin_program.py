@@ -66,11 +66,15 @@ def solve_lp(f_name: str = "linear_approx.json",
     # solve the problem
     m.optimize()
 
-    if verbose:
-        for variable, gurobi_variable in var_name_to_gurobi_var.items():
-            print(variable + ": " + str(gurobi_variable.X))
+    if m.Status == GRB.INFEASIBLE:
+        print("Model is not feasible")
+        return (None, None)
+    else:
+        if verbose:
+            for variable, gurobi_variable in var_name_to_gurobi_var.items():
+                print(variable + ": " + str(gurobi_variable.X))
 
-    return m.ObjVal, m.Runtime
+        return m.ObjVal, m.Runtime
 
 
 

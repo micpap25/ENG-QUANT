@@ -4,7 +4,7 @@ from gurobipy import GRB
 
 # Take in a QCP from a JSON and solve it
 def solve_qcp(f_name: str,
-                verbose: bool = False) -> tuple[float, float]:
+                verbose: bool = False) -> tuple[float | None, float | None]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -13,7 +13,7 @@ def solve_qcp(f_name: str,
     objective = data["objectives"]["obj"]
 
     # Create a new model
-    m = gp.Model("lp_from_json")
+    m = gp.Model("qcp_from_json")
     m.Params.OutputFlag = 0
     
     # Assign the variable names to Gurobi variables
@@ -67,19 +67,24 @@ def solve_qcp(f_name: str,
             m.addConstr(a <= constraint_data["upper"], constraint_name)
         else:
             m.addConstr(a >= constraint_data["lower"], constraint_name)
-    
+
     # solve the problem
     m.optimize()
 
-    if verbose:
-        for variable, gurobi_variable in var_name_to_gurobi_var.items():
-            print(variable + ": " + str(gurobi_variable.X))
+    if m.Status == GRB.INFEASIBLE:
+        print("Model is not feasible")
+        return (None, None)
+    else:
+        if verbose:
+            for variable, gurobi_variable in var_name_to_gurobi_var.items():
+                print(variable + ": " + str(gurobi_variable.X))
 
-    return m.ObjVal, m.Runtime
+        return m.ObjVal, m.Runtime
 
 
 
 if __name__ == "__main__":
-    val, time = solve_qcp(f_name="model11_quad.json", verbose=True)
+    # val, time = solve_qcp(f_name="model11_quad.json", verbose=True)
+    val, time = solve_qcp(f_name="unrelaxed.json", verbose=True)
     print("Obj val: " + str(val))
     print("Time: " + str(time))
