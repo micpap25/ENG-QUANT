@@ -7,7 +7,7 @@ import copy
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
 def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                                         f_name: str = "toy.json", 
-                                        verbose: str = False) -> None:
+                                        verbose: bool = False) -> None:
 
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)

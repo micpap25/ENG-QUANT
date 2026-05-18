@@ -12,7 +12,7 @@ from src.variable_definitions import (
 def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                                 coefficient_surrogate: bool, surrogate_bound_below: bool,
                                 surrogate_bound_above: bool, f_name: str = "toy.json",
-                                verbose: str = False) -> None:
+                                verbose: bool = False) -> None:
 
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
