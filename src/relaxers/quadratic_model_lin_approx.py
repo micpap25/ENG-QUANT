@@ -6,13 +6,19 @@ from src.variable_definitions import (
     setup_universal_linineq
 )
 
+from typing import Callable
+from collections.abc import Sequence
+from numpy.typing import NDArray
+type FloatArray = Sequence[float] | NDArray[np.float64]
+
 # Linear approximation of a convex QCP
 # The quadratic term for each inequality is a single variable squared (plus linear terms and constants)
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
 def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                                 coefficient_surrogate: bool, surrogate_bound_below: bool,
-                                surrogate_bound_above: bool, f_name: str = "toy.json",
-                                verbose: bool = False) -> None:
+                                surrogate_bound_above: bool, remove_division: bool = True,
+                                points_function: Callable[[float, float, int], FloatArray] = np.linspace,
+                                f_name: str = "toy.json", verbose: bool = False) -> None:
 
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -82,7 +88,7 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
             # Add linear approximation constraints
             if outer_approximation:
                 # Tangent line at each point
-                points = np.linspace(lower, upper, eps)
+                points = points_function(lower, upper, eps)
                 for i in range(eps):
                     point = points[i]
                     fun_point = point**2
@@ -103,10 +109,11 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
             else:
                 # Secant line between each two points
                 points = np.linspace(lower, upper, eps + 1)
-                lambd = points[1] - points[0]
                 for i in range(eps):
                     point_1 = points[i]
                     point_2 = points[i+1]
+                    lambd = point_2 - point_1
+
                     fun_point_1 = point_1**2
                     fun_point_2 = point_2**2
                     if coefficient_surrogate:
@@ -114,10 +121,15 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                         fun_point_2 *= quadratic_coef
 
                     constraint = setup_universal_linineq()
-                    m = float((fun_point_2 - fun_point_1) / lambd)
-                    constraint["body"]["constant"] = fun_point_1 - m*point_1
+                    if remove_division:
+                        m = fun_point_2 - fun_point_1
+                        constraint["body"]["constant"] = lambd*fun_point_1 - m*point_1
+                    else:
+                        m = float((fun_point_2 - fun_point_1) / lambd)
+                        constraint["body"]["constant"] = fun_point_1 - m*point_1
+
                     constraint["body"]["linear"] = [{"var": quadratic_variable, "coef": m}, \
-                                                    {"var": surrogate_var_name, "coef": -1.0}]
+                                                    {"var": surrogate_var_name, "coef": -lambd}]
                     constraint_name = surrogate_var_name + "_inner_lin_approx_" + str(i)
                     linear_approx_constraints.append(tuple((constraint_name, constraint)))
 
@@ -149,4 +161,4 @@ if __name__ == "__main__":
     F_NAME = "toy.json"
 
     quadratic_model_lin_approx(EPS, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE, 
-                                SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, F_NAME, verbose=True)
+                                SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, f_name=F_NAME, verbose=True)

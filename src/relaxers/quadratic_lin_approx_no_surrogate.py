@@ -2,11 +2,18 @@ import json
 import numpy as np
 import copy
 
+from typing import Callable
+from collections.abc import Sequence
+from numpy.typing import NDArray
+type FloatArray = Sequence[float] | NDArray[np.float64]
+
 # Linear approximation of a convex QCP, but with no surrogate variable
 # The quadratic term for each inequality is a single variable squared (plus linear terms and constants)
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
 def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
-                                        f_name: str = "toy.json", 
+                                        remove_division: bool = True,
+                                        points_function: Callable[[float, float, int], FloatArray] = np.linspace,
+                                        f_name: str = "toy.json",
                                         verbose: bool = False) -> None:
 
     with open(f_name, 'r', encoding='utf-8') as file:
@@ -62,18 +69,24 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
 
             else:
                 # Secant line between each two points
-                points = np.linspace(lower, upper, eps + 1)
-                lambd = points[1] - points[0]
+                points = points_function(lower, upper, eps + 1)
                 for i in range(eps):
                     point_1 = points[i]
                     point_2 = points[i+1]
+                    lambd = point_2 - point_1
+
                     fun_point_1 = quadratic_coef * point_1**2
                     fun_point_2 = quadratic_coef * point_2**2
 
                     constraint = copy.deepcopy(constraint_data)
                     constraint["body"]["quadratic"] = []
-                    m = float((fun_point_2 - fun_point_1) / lambd)
-                    constraint["body"]["constant"] += fun_point_1 - m*point_1
+                    if remove_division:
+                        m = fun_point_2 - fun_point_1
+                        constraint["body"]["constant"] += lambd*fun_point_1 - m*point_1
+                    else:
+                        m = float((fun_point_2 - fun_point_1) / lambd)
+                        constraint["body"]["constant"] += fun_point_1 - m*point_1
+                    
                     constraint["body"]["linear"].append({"var": quadratic_variable, "coef": m})
                     constraint_name = quadratic_variable + "_inner_lin_approx_" + str(i)
                     linear_approx_constraints.append(tuple((constraint_name, constraint)))
@@ -103,4 +116,4 @@ if __name__ == "__main__":
     F_NAME = "toy.json"
 
     quadratic_lin_approx_no_surrogate(EPS, OUTER_APPROXIMATION,
-                                        F_NAME, verbose=True)
+                                        f_name=F_NAME, verbose=True)
