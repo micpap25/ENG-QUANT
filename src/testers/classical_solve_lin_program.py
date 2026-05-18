@@ -5,7 +5,7 @@ from gurobipy import GRB
 # Take in an LP from a JSON and solve it
 # Use this to benchmark the linear approximation
 def solve_lp(f_name: str = "linear_approx.json",
-                verbose: bool = False) -> tuple[float, float]:
+                verbose: bool = False) -> tuple[float | None, float | None]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 

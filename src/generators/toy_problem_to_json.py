@@ -13,7 +13,7 @@ from src.variable_definitions import (
 def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
                         gamma: float, lambd: float, eps: float, delta: float,
                         lx: float, lp: float, lf: float, up: float, convex_relax: bool = True,
-                        f_out: str = "toy.json", verbose: str = False) -> None:
+                        f_out: str = "toy.json", verbose: bool = False) -> None:
 
     d = lambd**2 + delta
     sum_d = n*d

@@ -147,7 +147,7 @@ def condition_number(f_name: str = "linear_approx.json",
             j = var_name_to_row_index[lin_variable["var"]]
             constraint_matrix[i, j] = lin_variable["coef"]
 
-    A = np.vstack((bound_constraint_matrix, constraint_matrix))
+    A = np.vstack((bound_constraint_matrix, constraint_matrix)) # type: ignore
 
     if verbose:
         print(A)
