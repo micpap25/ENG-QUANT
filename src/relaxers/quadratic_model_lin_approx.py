@@ -108,7 +108,7 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
 
             else:
                 # Secant line between each two points
-                points = np.linspace(lower, upper, eps + 1)
+                points = points_function(lower, upper, eps + 1)
                 for i in range(eps):
                     point_1 = points[i]
                     point_2 = points[i+1]
@@ -124,12 +124,14 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                     if remove_division:
                         m = fun_point_2 - fun_point_1
                         constraint["body"]["constant"] = lambd*fun_point_1 - m*point_1
+                        constraint["body"]["linear"] = [{"var": quadratic_variable, "coef": m}, \
+                                                    {"var": surrogate_var_name, "coef": -lambd}]
                     else:
                         m = float((fun_point_2 - fun_point_1) / lambd)
                         constraint["body"]["constant"] = fun_point_1 - m*point_1
-
-                    constraint["body"]["linear"] = [{"var": quadratic_variable, "coef": m}, \
-                                                    {"var": surrogate_var_name, "coef": -lambd}]
+                        constraint["body"]["linear"] = [{"var": quadratic_variable, "coef": m}, \
+                                                    {"var": surrogate_var_name, "coef": -1.0}]
+                        
                     constraint_name = surrogate_var_name + "_inner_lin_approx_" + str(i)
                     linear_approx_constraints.append(tuple((constraint_name, constraint)))
 

@@ -54,7 +54,7 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
             # Add linear approximation constraints
             if outer_approximation:
                 # Tangent line at each point
-                points = np.linspace(lower, upper, eps)
+                points = points_function(lower, upper, eps)
                 for i in range(eps):
                     point = points[i]
                     fun_point = quadratic_coef * point**2

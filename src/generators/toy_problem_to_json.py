@@ -221,7 +221,7 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
 
 if __name__ == "__main__":
     # Number of copies of the network in the system
-    N=100
+    N=1
 
     # Whether the production and flow variables have upper bounds
     X_UPPER_BOUNDS=True
