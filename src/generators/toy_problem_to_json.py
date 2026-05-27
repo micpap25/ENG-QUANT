@@ -1,7 +1,7 @@
 import json
 import math
 
-from src.variable_definitions import (
+from variable_definitions import (
     setup_universal_var,
     setup_universal_lineq,
     setup_universal_linineq,

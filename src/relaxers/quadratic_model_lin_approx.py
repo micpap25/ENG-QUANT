@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-from src.variable_definitions import (
+from variable_definitions import (
     setup_universal_var,
     setup_universal_linineq
 )
