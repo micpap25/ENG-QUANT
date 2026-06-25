@@ -85,6 +85,6 @@ def solve_qcp(f_name: str,
 
 if __name__ == "__main__":
     # val, time = solve_qcp(f_name="model11_quad.json", verbose=True)
-    val, time = solve_qcp(f_name="unrelaxed.json", verbose=True)
+    val, time = solve_qcp(f_name="toy.json", verbose=True)
     print("Obj val: " + str(val))
     print("Time: " + str(time))

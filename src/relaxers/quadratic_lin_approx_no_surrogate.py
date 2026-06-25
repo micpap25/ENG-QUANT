@@ -11,10 +11,14 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 # The quadratic term for each inequality is a single variable squared (plus linear terms and constants)
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
 def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
-                                        remove_division: bool = True,
+                                        remove_division: bool = False,
                                         points_function: Callable[[float, float, int], FloatArray] = np.linspace,
                                         f_name: str = "toy.json",
                                         verbose: bool = False) -> None:
+
+    if not outer_approximation and remove_division:
+        print("You are setting remove_division to True for a no-surrogate approximation.\n" \
+        "This tends to cause infeasibility or worsen results.")
 
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -82,6 +86,8 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                     constraint["body"]["quadratic"] = []
                     if remove_division:
                         m = fun_point_2 - fun_point_1
+                        # TODO: Test this line further
+                        constraint["body"]["constant"] *= lambd
                         constraint["body"]["constant"] += lambd*fun_point_1 - m*point_1
                     else:
                         m = float((fun_point_2 - fun_point_1) / lambd)

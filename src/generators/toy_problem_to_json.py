@@ -10,7 +10,7 @@ from variable_definitions import (
 )
 
 # Produces a QCP toy problem for GasNet
-def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
+def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool, demand_inequality: bool,
                         gamma: float, lambd: float, eps: float, delta: float,
                         lx: float, lp: float, lf: float, up: float, convex_relax: bool = True,
                         f_out: str = "toy.json", verbose: bool = False) -> None:
@@ -135,7 +135,11 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool,
 
 
         # Customer node
-        customer = setup_universal_linineq()
+        if demand_inequality:
+            customer = setup_universal_linineq()
+        else:
+            customer = setup_universal_lineq()
+
         customer["body"]["constant"] = d
         customer["body"]["linear"] = [{"var": "f[transient" + str(fc) + "_customer" + str(fc) + "]", "coef": -1.0}, \
                                         {"var": "f[production" + str(3*fc) + "_customer" + str(fc) + "]", "coef": -1.0}]
@@ -227,6 +231,9 @@ if __name__ == "__main__":
     X_UPPER_BOUNDS=True
     F_UPPER_BOUNDS=True
 
+    # Whether the demand constraint is an equality or inequality
+    DEMAND_INEQUALITY=True
+
     # Capacity / demand parameters
     GAMMA=1.0
     LAMBD=1.0
@@ -237,7 +244,7 @@ if __name__ == "__main__":
     LX=LP=LF=0.0
     UP=5.0
 
-    toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS,
+    toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS, DEMAND_INEQUALITY,
                         GAMMA, LAMBD, EPS, DELTA,
                         LX, LP, LF, UP,
                         verbose=True)

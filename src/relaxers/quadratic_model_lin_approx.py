@@ -16,7 +16,7 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
 def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                                 coefficient_surrogate: bool, surrogate_bound_below: bool,
-                                surrogate_bound_above: bool, remove_division: bool = True,
+                                surrogate_bound_above: bool, remove_division: bool = False,
                                 points_function: Callable[[float, float, int], FloatArray] = np.linspace,
                                 f_name: str = "toy.json", verbose: bool = False) -> None:
 
@@ -35,7 +35,7 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
 
     linear_approx_constraints = []
 
-    for constraint_name, constraint_data in constraints.items():
+    for _, constraint_data in constraints.items():
         quadratic_terms = constraint_data["body"]["quadratic"]
         if len(quadratic_terms) > 1:
             print("Cannot work with multiple quadratic terms.")
@@ -103,8 +103,8 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                     else:
                         constraint["body"]["linear"] = [{"var": quadratic_variable, "coef": 2*point}, \
                                                         {"var": surrogate_var_name, "coef": -1.0}]
-                    constraint_name = surrogate_var_name + "_outer_lin_approx_" + str(i)
-                    linear_approx_constraints.append(tuple((constraint_name, constraint)))
+                    con_name = surrogate_var_name + "_outer_lin_approx_" + str(i)
+                    linear_approx_constraints.append(tuple((con_name, constraint)))
 
             else:
                 # Secant line between each two points
@@ -132,8 +132,8 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
                         constraint["body"]["linear"] = [{"var": quadratic_variable, "coef": m}, \
                                                     {"var": surrogate_var_name, "coef": -1.0}]
                         
-                    constraint_name = surrogate_var_name + "_inner_lin_approx_" + str(i)
-                    linear_approx_constraints.append(tuple((constraint_name, constraint)))
+                    con_name = surrogate_var_name + "_inner_lin_approx_" + str(i)
+                    linear_approx_constraints.append(tuple((con_name, constraint)))
 
     for constraint_name, constraint in linear_approx_constraints:
         constraints[constraint_name] = constraint
