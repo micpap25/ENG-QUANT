@@ -48,7 +48,7 @@ def solve_lp(f_name: str = "linear_approx.json",
     for constraint_name, constraint_data in constraints.items():
         assert len(constraint_data["body"]["quadratic"]) == 0
         a = gp.LinExpr()
-        
+
         linear_data = constraint_data["body"]["linear"]
         for lin_variable in linear_data:
             x = var_name_to_gurobi_var[lin_variable["var"]]
@@ -62,7 +62,7 @@ def solve_lp(f_name: str = "linear_approx.json",
             m.addConstr(a <= constraint_data["upper"], constraint_name)
         else:
             m.addConstr(a >= constraint_data["lower"], constraint_name)
-    
+
     # solve the problem
     m.optimize()
 
@@ -79,6 +79,6 @@ def solve_lp(f_name: str = "linear_approx.json",
 
 
 if __name__ == "__main__":
-    val, time = solve_lp(verbose=True)
+    val, time = solve_lp(f_name="linear_approx.json", verbose=True)
     print("Obj val: " + str(val))
     print("Time: " + str(time))

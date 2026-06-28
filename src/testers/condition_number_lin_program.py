@@ -7,7 +7,7 @@ import numpy as np
 # If the problem is min c^Tx  s.t. Ax = b, A'x >= d,  -x >= -u, x >= l
 # Then the matrix is A^TA + A'^TA' + 2I
 # This assumes the variables are bounded on both sides
-def condition_number_nes_basic(f_name: str = "linear_approx.json",
+def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.json",
                                 verbose: bool = False) -> float:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -27,8 +27,11 @@ def condition_number_nes_basic(f_name: str = "linear_approx.json",
     for constraint in constraints.values():
         if constraint["equality"]:
             n_equality_constraints += 1
-    
+
     n_inequality_constraints = n_constraints - n_equality_constraints
+    if verbose:
+        print(f"There are {n_variables} variables, {n_equality_constraints} equality constraints, "\
+            f"and {n_inequality_constraints} non-bound inequality constraints")
 
     # Create the matrices of constraints
     A = np.zeros((n_equality_constraints, n_variables))
@@ -57,13 +60,37 @@ def condition_number_nes_basic(f_name: str = "linear_approx.json",
                     A_bar[inequality_pointer, name] = lin_variable["coef"]
             inequality_pointer += 1
 
+    # Remove columns of unused variables
+    a_nonzeros = np.any(A != 0, axis=0)
+    a_bar_nonzeros = np.any(A_bar != 0, axis=0)
+    mask = a_nonzeros | a_bar_nonzeros
+
+    A = A[:, mask]
+    A_bar = A_bar[:, mask]
+
+    removed_vars = np.count_nonzero(mask == False)
+    n_variables -= removed_vars
+
+    if verbose:
+        print(f"Removed {removed_vars} unused variables")
+
+    if verbose:
+        # print(f"A =\n{A}")
+        print(f"cond(A) = {np.linalg.cond(A)}")
+        # print(f"A' =\n{A_bar}")
+        if len(A_bar) > 0:
+            print(f"cond(A') = {np.linalg.cond(A_bar)}")
 
     final_matrix = np.matmul(np.transpose(A), A) \
                     + np.matmul(np.transpose(A_bar), A_bar) \
-                    + np.multiply(2, np.identity(n_variables))
+                    + np.multiply(bounds, np.identity(n_variables))
 
     if verbose:
-        print(final_matrix)
+        # print(final_matrix)
+        # Sparsity of final matrix
+        non_zero_count = np.count_nonzero(final_matrix)
+        sparsity = 1.0 - (non_zero_count / final_matrix.size)
+        print(f"Sparsity of NES: {sparsity}")
 
     return np.linalg.cond(final_matrix)
 

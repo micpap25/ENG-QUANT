@@ -7,6 +7,7 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 
 # Turn all the linear inequalities of a program into equalities.
 # This may make it infeasible.
+# This isn't putting the problem in standard form, this is altering the problem.
 def ineq_to_eq(f_name: str = "toy.json", verbose: bool = False) -> None:
 
     with open(f_name, 'r', encoding='utf-8') as file:
@@ -28,7 +29,7 @@ def ineq_to_eq(f_name: str = "toy.json", verbose: bool = False) -> None:
                 else:
                     constraint_data["upper"] = constraint_data["lower"]
 
-    with open('linear_approx.json', 'w', encoding='utf-8') as f:
+    with open('ineq_to_eq.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
 
     if verbose:

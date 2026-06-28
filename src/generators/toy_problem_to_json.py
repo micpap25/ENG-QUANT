@@ -198,7 +198,7 @@ def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool, dema
     data["constraints"] = constraints
 
     if verbose:
-        print("Constraints: " + str(len(constraints) + 2*len(variables)))
+        print("Non-bound constraints: " + str(len(constraints)))
 
     # Objective
 
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     F_UPPER_BOUNDS=True
 
     # Whether the demand constraint is an equality or inequality
-    DEMAND_INEQUALITY=True
+    DEMAND_INEQUALITY=False
 
     # Capacity / demand parameters
     GAMMA=1.0
