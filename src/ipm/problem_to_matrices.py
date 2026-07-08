@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from typing import Any
 
@@ -55,7 +57,7 @@ def problem_to_matrices(f_name: str = "linear_approx.json",
         print(f"A: \n{A}")
         print(f"b: \n{b}")
         print(f"c: \n{c}")
-    return A, b, c
+    return A.toarray(), b, c
 
 
 if __name__ == "__main__":

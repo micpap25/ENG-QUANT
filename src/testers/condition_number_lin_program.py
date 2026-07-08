@@ -75,9 +75,9 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         print(f"Removed {removed_vars} unused variables")
 
     if verbose:
-        # print(f"A =\n{A}")
+        print(f"A =\n{A}")
         print(f"cond(A) = {np.linalg.cond(A)}")
-        # print(f"A' =\n{A_bar}")
+        print(f"A' =\n{A_bar}")
         if len(A_bar) > 0:
             print(f"cond(A') = {np.linalg.cond(A_bar)}")
 
@@ -86,7 +86,7 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
                     + np.multiply(bounds, np.identity(n_variables))
 
     if verbose:
-        # print(final_matrix)
+        print(final_matrix)
         # Sparsity of final matrix
         non_zero_count = np.count_nonzero(final_matrix)
         sparsity = 1.0 - (non_zero_count / final_matrix.size)

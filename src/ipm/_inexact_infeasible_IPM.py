@@ -126,7 +126,7 @@ def inexact_infeasible_IPM(LO):
 	while (True):
 
 		#-------------------------------------------------------------------
-		# Calculate complementarity 
+		# Calculate complementarity
 		#-------------------------------------------------------------------
 		mu 		= LO.complementarity() * beta_1 / LO.n
 
@@ -151,7 +151,7 @@ def inexact_infeasible_IPM(LO):
 		
 
 		#-------------------------------------------------------------------
-		# Liner system solver solution
+		# Linear system solver solution
 		#-------------------------------------------------------------------
 		delta_y, norm_of_residual, is_sign_changed 	= linear_system_solver(M, r, LO.Params)  
 		
@@ -182,6 +182,7 @@ def inexact_infeasible_IPM(LO):
 		#-------------------------------------------------------------------
 		end_time 	= time()
 		run_time 	= end_time - start_time
+		print(run_time)
 
 
 		#-------------------------------------------------------------------
@@ -215,10 +216,10 @@ def inexact_infeasible_IPM(LO):
 
 		condition_number 	= np.linalg.cond(M)
 
-		if (condition_number > LO.Params.Stop_Cond_Num):
-			print()
-			print("The solution quality is limited by the condition number that the linear system solver can handel.")
-			break
+		# if (condition_number > LO.Params.Stop_Cond_Num):
+		# 	print()
+		# 	print("The solution quality is limited by the condition number that the linear system solver can handle.")
+		# 	break
 	
 	print_final_IPM(LO, iteration, run_time)
 

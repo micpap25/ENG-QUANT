@@ -53,6 +53,6 @@ if __name__ == "__main__":
     SLACK_UB = None
 
     # File to import the quadratic model from
-    F_NAME = "toy.json"
+    F_NAME = "linear_approx.json"
 
     standard_form(SLACK_UB, F_NAME, True)

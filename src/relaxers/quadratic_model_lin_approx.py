@@ -167,5 +167,7 @@ if __name__ == "__main__":
     # File to import the quadratic model from
     F_NAME = "model11_quad_reform.json"
 
+    # quadratic_model_lin_approx(EPS, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE, 
+    #                             SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, points_function=np_uniform_bunch_low, f_name=F_NAME, verbose=True)
     quadratic_model_lin_approx(EPS, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE, 
-                                SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, points_function=np_uniform_bunch_low, f_name=F_NAME, verbose=True)
+                                SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, f_name=F_NAME, verbose=True)
