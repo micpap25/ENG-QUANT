@@ -52,11 +52,11 @@ def calculate_alpha_star(LO, alpha_star, delta_x, delta_y, delta_s):
 				is_neighbor 	= False
 				break
 
-		if not is_neighbor: 
+		if not is_neighbor:
 			continue
 
-
 		epsilon_primal 	= np.linalg.norm(np.dot(LO.A, x_temp) - LO.b)
+
 
 		if (epsilon_primal > max(compl_temp/gamma, precision)):
 			alpha_hat 		*= alpha_hat_dec
@@ -148,7 +148,6 @@ def inexact_infeasible_IPM(LO):
 		r 		= LO.b - np.dot(LO.A, LO.x) - mu * np.dot(LO.A, s_1) + \
 					LO.A.dot(XS_1).dot(c_ATy) 							# b - A.x - mu.As^(-1) + A.X.S^(-1).(c - A^T.y)
 
-		
 
 		#-------------------------------------------------------------------
 		# Linear system solver solution
@@ -163,14 +162,12 @@ def inexact_infeasible_IPM(LO):
 		delta_s 		= c_ATy - LO.s - np.dot(LO.A.T, delta_y)
 		delta_x 		= mu * s_1 - LO.x - np.dot(XS_1, delta_s)
 
-		 
 		#-------------------------------------------------------------------
 		# Calculate the step-size for updating the iterates
 		#-------------------------------------------------------------------
 		alpha_star_x 	= ratio(LO.x, delta_x)
 		alpha_star_s 	= ratio(LO.s, delta_s)
 		alpha_star 		= min(alpha_star_x, alpha_star_s, 1.0)
-
 		
 		#-------------------------------------------------------------------
 		# Backtracking to calculate alpha_hat
@@ -182,7 +179,6 @@ def inexact_infeasible_IPM(LO):
 		#-------------------------------------------------------------------
 		end_time 	= time()
 		run_time 	= end_time - start_time
-		print(run_time)
 
 
 		#-------------------------------------------------------------------

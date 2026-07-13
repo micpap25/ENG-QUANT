@@ -7,18 +7,15 @@ def ipm_solve(f_name: str = "linear_approx.json",
                 verbose: bool = False) -> None:
     A, b, c = problem_to_matrices(f_name=f_name, verbose=verbose)
 
-    print(len(A))
-    print(len(A[0]))
-    
-    model = Model(A, b, c)
+    # print(len(A))
+    # print(len(A[0]))
 
+    model = Model(A, b, c)
 
     model.Params.Method 		= "II-IPM"
 
     model.Params.Omega 			= 1e4
     model.Params.Stop_Precision = 1e-16
-    model.Params.Stop_Cond_Num 	= 1e10
-    model.Beta_2                = 0.1
 
     # model.Params.Method 		= "II-QIPM"
     # model.Params.HHL_Method 	= 2

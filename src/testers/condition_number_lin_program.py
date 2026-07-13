@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Take in an LP and compute the condition number of a matrix
 # That should represent the system being solved in the QIPM
@@ -91,6 +92,7 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         non_zero_count = np.count_nonzero(final_matrix)
         sparsity = 1.0 - (non_zero_count / final_matrix.size)
         print(f"Sparsity of NES: {sparsity}")
+        print(plt.spy(final_matrix))
 
     return np.linalg.cond(final_matrix)
 
