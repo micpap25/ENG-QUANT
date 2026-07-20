@@ -37,14 +37,14 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
     x = np.ones(n) * omega
     s = np.ones(i) * omega
     y = np.zeros(e)
-    z = -np.ones(i) * omega
+    z = np.ones(i) * omega
     r = np.ones(n) * omega
 
     iteration = 0
     start_time = time.time()
 
     while True:
-        compl = np.dot(x, r) + np.dot(s, -z)
+        compl = np.dot(x, r) + np.dot(s, z)
 
         mu = compl * beta / (n + i)
 
@@ -60,12 +60,12 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
         red_p = b - np.dot(A, x)
         red_g = h - np.dot(G, x) - s
-        red_d = c - np.dot(A.T, y) - np.dot(G.T, -z) - r
+        red_d = c - np.dot(A.T, y) - np.dot(G.T, z) - r
         red_cx = mu * np.ones(n) - np.dot(X, r)
-        red_cs = mu * np.ones(i) - np.dot(S, -z)
+        red_cs = mu * np.ones(i) - np.dot(S, z)
 
         Dx = np.dot(X_1, R)
-        W = np.dot(S_1, -Z)
+        W = np.dot(S_1, Z)
 
         GTW = np.dot(G.T, W)
         S_1red_cs = np.dot(S_1, red_cs)
@@ -88,7 +88,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
         alpha_star_x = ratio(x, delta_x)
         alpha_star_s = ratio(s, delta_s)
-        alpha_star_z = ratio(-z, -delta_z)
+        alpha_star_z = ratio(z, delta_z)
         alpha_star_r = ratio(r, delta_r)
         alpha_hat = min(alpha_star_x, alpha_star_s, alpha_star_z, alpha_star_r, 1.0)
 
@@ -102,7 +102,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
             z_temp = z + alpha_hat * delta_z
             r_temp = r + alpha_hat * delta_r
 
-            compl_temp = np.dot(x_temp, r_temp) + np.dot(s_temp, -z_temp)
+            compl_temp = np.dot(x_temp, r_temp) + np.dot(s_temp, z_temp)
             is_neighbor = True
 
             for (xi, ri) in zip(x_temp, r_temp):
@@ -113,7 +113,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
             if is_neighbor:
                 for (si, zi) in zip(s_temp, z_temp):
-                    if -si*zi < gamma * compl_temp / (n + i):
+                    if si*zi < gamma * compl_temp / (n + i):
                         alpha_hat *= alpha_hat_dec
                         is_neighbor = False
                         break
@@ -129,7 +129,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
                 is_neighbor = False
                 continue
 
-            epsilon_dual = np.linalg.norm(np.dot(A.T, y_temp) + np.dot(G.T, -z_temp) + r_temp - c)
+            epsilon_dual = np.linalg.norm(np.dot(A.T, y_temp) + np.dot(G.T, z_temp) + r_temp - c)
 
             if epsilon_dual > max(compl_temp/gamma, precision):
                 alpha_hat *= alpha_hat_dec
@@ -159,11 +159,11 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
         if verbose:
             print(f"{'Primal objective:':20}{np.dot(c, x):<15.8e}")
-            print(f"{'Dual objective:':20}{np.dot(b, y) + np.dot(h, -z):<15.8e}")
+            print(f"{'Dual objective:':20}{np.dot(b, y) + np.dot(h, z):<15.8e}")
             print()
             print(f"{'Primal residual:':20}{np.linalg.norm(np.concatenate((np.dot(A, x) - b, np.dot(G, x) + s - h))):<8.2e}")
-            print(f"{'Dual residual:':20}{np.linalg.norm(np.dot(A.T, y) + np.dot(G.T, -z) + r - c):<8.2e}")
-            print(f"{'Complementarity:':20}{np.dot(x, r) + np.dot(s, -z):<8.2e}")
+            print(f"{'Dual residual:':20}{np.linalg.norm(np.dot(A.T, y) + np.dot(G.T, z) + r - c):<8.2e}")
+            print(f"{'Complementarity:':20}{np.dot(x, r) + np.dot(s, z):<8.2e}")
             print()
 
         if alpha_hat < step_precision:
@@ -174,11 +174,11 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
     print(f"The algorithm stopped after {iteration:d} iterations in {run_time:.2f} seconds.")
     print()
     print(f"{'Primal objective:':20}{np.dot(c, x):<15.8e}")
-    print(f"{'Dual objective:':20}{np.dot(b, y) + np.dot(h, -z):<15.8e}")
+    print(f"{'Dual objective:':20}{np.dot(b, y) + np.dot(h, z):<15.8e}")
     print()
     print(f"{'Primal residual:':20}{np.linalg.norm(np.concatenate((np.dot(A, x) - b, np.dot(G, x) + s - h))):<8.2e}")
-    print(f"{'Dual residual:':20}{np.linalg.norm(np.dot(A.T, y) + np.dot(G.T, -z) + r - c):<8.2e}")
-    print(f"{'Complementarity:':20}{np.dot(x, r) + np.dot(s, -z):<8.2e}")
+    print(f"{'Dual residual:':20}{np.linalg.norm(np.dot(A.T, y) + np.dot(G.T, z) + r - c):<8.2e}")
+    print(f"{'Complementarity:':20}{np.dot(x, r) + np.dot(s, z):<8.2e}")
 
 if __name__ == "__main__":
     ipm_solve(omega=1e2, verbose=True)

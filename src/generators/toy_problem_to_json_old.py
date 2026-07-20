@@ -10,9 +10,9 @@ from variable_definitions import (
 )
 
 # Produces a QCP toy problem for GasNet
-def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
+def toy_problem_to_json(n: int, x_upper_bounds: bool, f_upper_bounds: bool, demand_inequality: bool,
                         gamma: float, lambd: float, eps: float, delta: float,
-                        lp: float, lf: float, up: float, convex_relax: bool = True,
+                        lx: float, lp: float, lf: float, up: float, convex_relax: bool = True,
                         f_out: str = "toy.json", verbose: bool = False) -> None:
 
     d = lambd**2 + delta
@@ -23,6 +23,10 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
 
 
     # Don't choose upper bounds arbitrarily (except for pressure)
+    if x_upper_bounds:
+        ux = sum_d
+    else:
+        ux = None
 
     if f_upper_bounds:
         uf = min(sum_d, math.sqrt((up - lp)/gamma))
@@ -37,6 +41,12 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
     data['name'] = "GasNetwork_ToyProblem_N=" + str(n)
 
     variables = {}
+    for x in range(1, 3 * n + 1):
+        # Each copy has 3 production nodes
+        var = setup_universal_var()
+        var["lower"] = lx
+        var["upper"] = ux
+        variables["x[production" + str(x) + "]"] = var
 
     for p in range(1, nodes + 1):
         # Each copy has 3 production nodes, 1 transient node, and 1 customer
@@ -89,6 +99,25 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
 
     # Flow production constraints
     for fc in range(1, n+1):
+        # Production nodes
+        production_1 = setup_universal_lineq()
+        production_1["body"]["constant"] = 0.0
+        production_1["body"]["linear"] = [{"var": "x[production" + str(3*fc - 2) + "]", "coef": 1.0}, \
+                                        {"var": "f[production" + str(3*fc - 2) + "_transient" + str(fc) + "]", "coef": -1.0}]
+        constraints["fc[production" + str(3*fc - 2)+ "]"] = production_1
+
+        production_2 = setup_universal_lineq()
+        production_2["body"]["constant"] = 0.0
+        production_2["body"]["linear"] = [{"var": "x[production" + str(3*fc - 1) + "]", "coef": 1.0}, \
+                                        {"var": "f[production" + str(3*fc - 1) + "_transient" + str(fc) + "]", "coef": -1.0}]
+        constraints["fc[production" + str(3*fc - 1)+ "]"] = production_2
+
+        production_3 = setup_universal_lineq()
+        production_3["body"]["constant"] = 0.0
+        production_3["body"]["linear"] = [{"var": "x[production" + str(3*fc) + "]", "coef": 1.0}, \
+                                        {"var": "f[production" + str(3*fc) + "_customer" + str(fc) + "]", "coef": -1.0}]
+        constraints["fc[production" + str(3*fc)+ "]"] = production_3
+
         # Transient node
         transient = setup_universal_lineq()
         transient["body"]["constant"] = 0.0
@@ -182,9 +211,9 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
     linear = []
     for c in range(1, n+1):
         # Cost of each production node
-        linear.append({"var": "f[production" + str(3*c - 2) + "_transient" + str(c) + "]", "coef": lambd - eps})
-        linear.append({"var": "f[production" + str(3*c - 1) + "_transient" + str(c) + "]", "coef": lambd})
-        linear.append({"var": "f[production" + str(3*c) + "_customer" + str(c) + "]", "coef": lambd + eps})
+        linear.append({"var": "x[production" + str(3*c - 2) + "]", "coef": lambd - eps})
+        linear.append({"var": "x[production" + str(3*c - 1) + "]", "coef": lambd})
+        linear.append({"var": "x[production" + str(3*c) + "]", "coef": lambd + eps})
 
     expr["linear"] = linear
     objectives["expr"] = expr
@@ -199,6 +228,7 @@ if __name__ == "__main__":
     N=1
 
     # Whether the production and flow variables have upper bounds
+    X_UPPER_BOUNDS=True
     F_UPPER_BOUNDS=True
 
     # Whether the demand constraint is an equality or inequality
@@ -211,10 +241,10 @@ if __name__ == "__main__":
     DELTA=0.1
 
     # Lower bounds and upper bound on pressure
-    LP=LF=0.0
+    LX=LP=LF=0.0
     UP=5.0
 
-    toy_problem_to_json(N, F_UPPER_BOUNDS, DEMAND_INEQUALITY,
+    toy_problem_to_json(N, X_UPPER_BOUNDS, F_UPPER_BOUNDS, DEMAND_INEQUALITY,
                         GAMMA, LAMBD, EPS, DELTA,
-                        LP, LF, UP,
+                        LX, LP, LF, UP,
                         verbose=True)

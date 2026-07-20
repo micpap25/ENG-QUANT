@@ -50,6 +50,7 @@ def calculate_alpha_star(LO, alpha_star, delta_x, delta_y, delta_s):
 			if (xi*si < gamma * compl_temp / LO.n):
 				alpha_hat 		*= alpha_hat_dec
 				is_neighbor 	= False
+				# print("Stopped by first stage")
 				break
 
 		if not is_neighbor:
@@ -61,6 +62,7 @@ def calculate_alpha_star(LO, alpha_star, delta_x, delta_y, delta_s):
 		if (epsilon_primal > max(compl_temp/gamma, precision)):
 			alpha_hat 		*= alpha_hat_dec
 			is_neighbor 	= False
+			# print("Stopped by epsilon primal")
 			continue
 
 
@@ -69,12 +71,14 @@ def calculate_alpha_star(LO, alpha_star, delta_x, delta_y, delta_s):
 		if (epsilon_dual > max(compl_temp/gamma, precision)):
 			alpha_hat 		*= alpha_hat_dec
 			is_neighbor 	= False
+			# print("Stopped by epsilon dual")
 			continue
 
 
 		if (compl_temp > (1 - alpha_hat * (1 - beta_2) )* compl) :
 			alpha_hat 		*= alpha_hat_dec
 			is_neighbor 	= False
+			# print("Stopped by beta 2")
 			continue
 
 	#-------------------------------------------------------------------
@@ -173,7 +177,7 @@ def inexact_infeasible_IPM(LO):
 		# Backtracking to calculate alpha_hat
 		#-------------------------------------------------------------------
 		LO, alpha_hat 	= calculate_alpha_star(LO, alpha_star, delta_x, delta_y, delta_s)
-		
+	
 		#-------------------------------------------------------------------
 		# Calculate the run-time
 		#-------------------------------------------------------------------
