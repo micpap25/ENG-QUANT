@@ -8,10 +8,10 @@ from gurobipy import GRB
 import numpy as np
 
 # Take in an LP from a JSON
-# Return A, b, G, h, c
+# Return A, b, G, h, U, v, c
 # Use Gurobi to make it easy
 def problem_to_eq_ineq_matrices(f_name: str = "linear_approx.json",
-                                verbose: bool = False) -> tuple[Any, Any, Any, Any, Any]:
+                                verbose: bool = False) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -24,10 +24,19 @@ def problem_to_eq_ineq_matrices(f_name: str = "linear_approx.json",
     m.Params.OutputFlag = 0
 
     # Assign the variable names to Gurobi variables
+    # Add any bound constraints as constraints
     var_name_to_gurobi_var = {}
     for var_name, variable in variables.items():
         x = m.addVar(vtype=GRB.CONTINUOUS, name=var_name)
         var_name_to_gurobi_var[var_name] = x
+        if variable["lower"] is not None and variable["lower"] != 0.0:
+            a = gp.LinExpr()
+            a += x
+            m.addConstr(a >= variable["lower"], var_name + "_lower")
+        if variable["upper"] is not None:
+            a = gp.LinExpr()
+            a += x
+            m.addConstr(a <= variable["upper"], var_name + "_upper")
 
     # cost vector
     cost = gp.LinExpr()

@@ -1,13 +1,8 @@
 import json
-import numpy as np
 
 from variable_definitions import (
     setup_universal_var
 )
-
-from collections.abc import Sequence
-from numpy.typing import NDArray
-type FloatArray = Sequence[float] | NDArray[np.float64]
 
 # Change a program to standard form by introducing positive slack variables.
 def standard_form(slack_ub: float | None = None,

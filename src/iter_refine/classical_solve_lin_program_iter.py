@@ -2,9 +2,12 @@ import json
 import gurobipy as gp
 from gurobipy import GRB
 
-# Take in a QCP from a JSON and solve it
-def solve_qcp(f_name: str,
-                verbose: bool = False) -> tuple[float | None, float | None]:
+
+
+# Take in an LP from a JSON and solve it
+# Use this to benchmark the linear approximation
+def solve_lp(f_name: str = "linear_approx.json",
+                verbose: bool = False) -> tuple[float | None, float | None, list | None]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -13,7 +16,7 @@ def solve_qcp(f_name: str,
     objective = data["objectives"]["obj"]
 
     # Create a new model
-    m = gp.Model("qcp_from_json")
+    m = gp.Model("lp_from_json")
     m.Params.OutputFlag = 0
     
     # Assign the variable names to Gurobi variables
@@ -45,19 +48,13 @@ def solve_qcp(f_name: str,
 
     # each constraint in the problem
     for constraint_name, constraint_data in constraints.items():
-        a = gp.QuadExpr()
-
-        quadratic_data = constraint_data["body"]["quadratic"]
-        for quadratic_term in quadratic_data:
-            x = var_name_to_gurobi_var[quadratic_term["var1"]]
-            y = var_name_to_gurobi_var[quadratic_term["var2"]]
-            a += quadratic_term["coef"] * x * y
+        assert len(constraint_data["body"]["quadratic"]) == 0
+        a = gp.LinExpr()
 
         linear_data = constraint_data["body"]["linear"]
         for lin_variable in linear_data:
             x = var_name_to_gurobi_var[lin_variable["var"]]
             a += lin_variable["coef"] * x
-
         a += constraint_data["body"]["constant"]
 
         # I am assuming here that there won't ever be a "double" constraint
@@ -73,18 +70,17 @@ def solve_qcp(f_name: str,
 
     if m.Status == GRB.INFEASIBLE:
         print("Model is not feasible")
-        return (None, None)
+        return (None, None, None)
     else:
         if verbose:
             for variable, gurobi_variable in var_name_to_gurobi_var.items():
                 print(variable + ": " + str(gurobi_variable.X))
 
-        return m.ObjVal, m.Runtime
+        return m.ObjVal, m.Runtime, m.X
 
 
 
 if __name__ == "__main__":
-    val, time = solve_qcp(f_name="remap_lower.json", verbose=True)
-    # val, time = solve_qcp(f_name="linear_approx.json", verbose=True)
+    val, time = solve_lp(f_name="linear_approx.json", verbose=True)
     print("Obj val: " + str(val))
     print("Time: " + str(time))

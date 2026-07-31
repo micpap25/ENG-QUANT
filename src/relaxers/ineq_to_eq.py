@@ -1,9 +1,4 @@
 import json
-import numpy as np
-
-from collections.abc import Sequence
-from numpy.typing import NDArray
-type FloatArray = Sequence[float] | NDArray[np.float64]
 
 # Turn all the linear inequalities of a program into equalities.
 # This may make it infeasible.
@@ -37,6 +32,6 @@ def ineq_to_eq(f_name: str = "toy.json", verbose: bool = False) -> None:
 
 if __name__ == "__main__":
     # File to import the model from
-    F_NAME = "model11_quad.json"
+    F_NAME = "linear_approx.json"
 
     ineq_to_eq(f_name=F_NAME, verbose=True)
