@@ -7,11 +7,11 @@ import gurobipy as gp
 from gurobipy import GRB
 import numpy as np
 
-# Take in an LP from a JSON
-# Return A, b, G, h, U, v, c
+# Take in an LP from a JSON, return A, b, G, h, u, c
+# All variables should have a lower bound of exactly 0 (use remap_lower_bounds.py)
 # Use Gurobi to make it easy
 def problem_to_eq_ineq_matrices(f_name: str = "linear_approx.json",
-                                verbose: bool = False) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
+                                verbose: bool = False) -> tuple[Any, Any, Any, Any, Any, Any]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -24,19 +24,20 @@ def problem_to_eq_ineq_matrices(f_name: str = "linear_approx.json",
     m.Params.OutputFlag = 0
 
     # Assign the variable names to Gurobi variables
-    # Add any bound constraints as constraints
     var_name_to_gurobi_var = {}
     for var_name, variable in variables.items():
-        x = m.addVar(vtype=GRB.CONTINUOUS, name=var_name)
-        var_name_to_gurobi_var[var_name] = x
         if variable["lower"] is not None and variable["lower"] != 0.0:
-            a = gp.LinExpr()
-            a += x
-            m.addConstr(a >= variable["lower"], var_name + "_lower")
+            print(f"Error, the lower bound for {var_name} should be 0")
+            return None, None, None, None, None, None
         if variable["upper"] is not None:
-            a = gp.LinExpr()
-            a += x
-            m.addConstr(a <= variable["upper"], var_name + "_upper")
+            if variable["upper"] <= 0.0:
+                print(f"Error, the upper bound for {var_name} should be more than 0")
+                return None, None, None, None, None, None
+            x = m.addVar(vtype=GRB.CONTINUOUS, name=var_name, ub = variable["upper"])
+        else:
+            x = m.addVar(vtype=GRB.CONTINUOUS, name=var_name)
+
+        var_name_to_gurobi_var[var_name] = x
 
     # cost vector
     cost = gp.LinExpr()
@@ -48,8 +49,7 @@ def problem_to_eq_ineq_matrices(f_name: str = "linear_approx.json",
     # each constraint in the problem
     for constraint_name, constraint_data in constraints.items():
         assert len(constraint_data["body"]["quadratic"]) == 0
-        # Eq or upper-bounded ineq
-        assert constraint_data["equality"] or constraint_data["lower"] is None
+
         a = gp.LinExpr()
 
         linear_data = constraint_data["body"]["linear"]
@@ -58,33 +58,40 @@ def problem_to_eq_ineq_matrices(f_name: str = "linear_approx.json",
             a += lin_variable["coef"] * x
         a += constraint_data["body"]["constant"]
 
+        # Equality constraint
         if constraint_data["equality"]:
             m.addConstr(a == constraint_data["lower"], constraint_name)
-        else:
+        # Upper-bounded constraint
+        elif constraint_data["lower"] is None:
             m.addConstr(a <= constraint_data["upper"], constraint_name)
+        # Lower-bounded constraint (reformulate as upper-bounded constraint)
+        else:
+            m.addConstr(-a <= -constraint_data["lower"], constraint_name)
 
     m.update()
 
     senses = np.array(m.getAttr('Sense', m.getConstrs()))
-    eq_idx = senses == '='
     ineq_idx = senses != '='
+    eq_idx = senses == '='
 
     A_full = m.getA()
-    A = A_full[eq_idx, :]
-    G = A_full[ineq_idx, :]
+    A = A_full[ineq_idx, :]
+    G = A_full[eq_idx, :]
     b_full = np.array(m.getAttr("RHS", m.getConstrs()))
-    b = b_full[eq_idx]
-    h = b_full[ineq_idx]
-    c = m.getAttr("Obj", m.getVars())
+    b = b_full[ineq_idx]
+    h = b_full[eq_idx]
+    u = np.array(m.getAttr("UB", m.getVars()))
+    c = np.array(m.getAttr("Obj", m.getVars()))
 
     if verbose:
-        print(f"A: \n{A}")
+        print(f"A: \n{A.toarray()}")
         print(f"b: \n{b}")
-        print(f"G: \n{G}")
+        print(f"G: \n{G.toarray()}")
         print(f"h: \n{h}")
+        print(f"u: \n{u}")
         print(f"c: \n{c}")
-    return A.toarray(), b, G.toarray(), h, c
+    return A.toarray(), b, G.toarray(), h, u, c
 
 
 if __name__ == "__main__":
-    A, b, G, h, c = problem_to_eq_ineq_matrices(verbose=True)
+    A, b, G, h, u, c = problem_to_eq_ineq_matrices(verbose=True)

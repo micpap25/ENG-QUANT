@@ -60,7 +60,7 @@ def remap_lower_bounds(f_name: str = "toy.json", verbose: bool = False,
 
 if __name__ == "__main__":
     # File to import the model from
-    F_NAME = "model11_quad_reform_2.json"
+    F_NAME = "linear_approx.json"
 
     remap_lower_bounds(f_name=F_NAME, verbose=True,
                         quadratic_check = True, lb = 0)

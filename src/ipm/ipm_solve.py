@@ -3,12 +3,19 @@ from __future__ import annotations
 from ipm.problem_to_matrices import problem_to_matrices
 from ipm.Model import Model
 
+import numpy as np
+
 def ipm_solve(f_name: str = "linear_approx.json",
                 verbose: bool = False) -> None:
-    A, b, c = problem_to_matrices(f_name=f_name, verbose=verbose)
+    # A, b, c = problem_to_matrices(f_name=f_name, verbose=verbose)
 
     # print(len(A))
     # print(len(A[0]))
+
+    A = np.array([[1, 3], \
+                  [2, 1]])
+    b = np.array([6, 7])
+    c = np.array([2, 3])
 
     model = Model(A, b, c)
 

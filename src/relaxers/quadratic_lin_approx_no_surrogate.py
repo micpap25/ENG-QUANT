@@ -118,13 +118,13 @@ if __name__ == "__main__":
         return np.linspace(lower, lower + ((upper - lower)/concat), num)
 
     # The number of linear constraints to use per quadratic constraint
-    EPS = 20
+    EPS = 100
 
     # Whether to do an inner or outer approximation
     OUTER_APPROXIMATION = True
 
     # File to import the quadratic model from
-    F_NAME = "toy.json"
+    F_NAME = "model11_quad_reform_2.json"
 
-    quadratic_lin_approx_no_surrogate(EPS, OUTER_APPROXIMATION, points_function=np_uniform_bunch_low,
+    quadratic_lin_approx_no_surrogate(EPS, OUTER_APPROXIMATION,
                                         f_name=F_NAME, verbose=True)

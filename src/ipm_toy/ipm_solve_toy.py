@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ipm.problem_to_matrices import problem_to_matrices
 from ipm_new.problem_to_eq_ineq_matrices import problem_to_eq_ineq_matrices
 import numpy as np
 import time
@@ -13,18 +14,19 @@ def ratio(x_vec, delta_x_vec):
             rat = min(- x / delta_x , rat)
     return rat
 
-# TODO: Presolve the production nodes instead of writing them out of the formulation to get below information.
-# In the future, compute Omega directly as the sum of the upper bounds of the production constraints
-# Times the cost so we have an upper bound on the objective value
-def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
-                beta2: float = 1 - 5e-4, omega: float = 5e3,
-                gamma: float = 0.5, precision: float = 1e-8,
-                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
-                verbose: bool = False) -> None:
+def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2,
+                gamma: float = 0.5, precision: float = 1e-7,
+                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16) -> None:
     np.set_printoptions(linewidth=200)
 
-    # Gurobi output pops up here because of license file
-    A, b, G, h, u, c = problem_to_eq_ineq_matrices(f_name=f_name, verbose=False)
+    # Dual solution is (0, 4, 0), obj = 8
+    A = np.array([[1, 0, 1], \
+                  [1, 2, 0]])
+    b = np.array([3, 8])
+    G = np.array([[1, 1, -1]])
+    h = np.array([4])
+    c = np.array([1, -2, 1])
+    u = np.array([5, 3, 5])
 
     i = len(b)
     e = len(h)
@@ -286,4 +288,4 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
     print(x)
 
 if __name__ == "__main__":
-    ipm_solve()
+    ipm_solve_toy()

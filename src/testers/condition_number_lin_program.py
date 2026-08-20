@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Take in an LP and compute the condition number of a matrix
 # That should represent the system being solved in the QIPM
 # According to discussions on 4/30/2026
-# If the problem is min c^Tx  s.t. Ax = b, A'x >= d,  -x >= -u, x >= l
+# If the problem is min c^Tx  s.t. Ax = b, A'x >= d, -x >= -u, x >= l
 # Then the matrix is A^TA + A'^TA' + 2I
 # This assumes the variables are bounded on both sides
 def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.json",
@@ -81,8 +81,9 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         print(f"A' =\n{A_bar}")
         if len(A_bar) > 0:
             print(f"cond(A') = {np.linalg.cond(A_bar)}")
+        print(f"frr A' = {np.linalg.matrix_rank(A) == A.shape[0]}")
 
-    final_matrix = np.matmul(np.transpose(A), A) \
+    final_matrix = np.multiply(2, np.matmul(np.transpose(A), A)) \
                     + np.matmul(np.transpose(A_bar), A_bar) \
                     + np.multiply(bounds, np.identity(n_variables))
 
