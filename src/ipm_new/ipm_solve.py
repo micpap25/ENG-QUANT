@@ -74,6 +74,9 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
         ATZ1_1Y = A.T * yz1_1
         GTZ_1W = G.T * (w1z2_1 + w2z3_1)
 
+        ATy = np.dot(A.T, y)
+        GTw1_w2 = np.dot(G.T, w1 - w2)
+
         M = np.dot(ATZ1_1Y, A) + np.dot(GTZ_1W, G) + np.diag(gamz4_1 + lamz5_1)
 
         z1_1 = np.reciprocal(z1)
@@ -84,7 +87,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
         r = np.dot(ATZ1_1Y, b_Ax) + np.dot(GTZ_1W, h_Gx) + gamz4_1 * u_x - lamz5_1 * x \
             - mu * (np.dot(A.T, z1_1) + np.dot(G.T, z2_1 - z3_1) + z4_1 - z5_1) \
-            - c - np.dot(A.T, y) - np.dot(G.T, w1 - w2) - gam + lam
+            - c - ATy - GTw1_w2 - gam + lam
 
         # Linear System Solve
         delta_x = np.linalg.solve(M, r)
@@ -97,7 +100,8 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
         delta_w1 = (w1 * (Gx + Gdelta_x - h) + mu) / z2
         delta_w2 = (mu - w2 * (Gx + Gdelta_x - h)) / z3
         delta_gam = (gam * (x + delta_x - u) + mu) / z4
-        delta_lam = (mu - lam * (delta_x + x)) / z5
+        delta_lam = c + ATy + GTw1_w2 + gam - lam \
+            + np.dot(A.T, delta_y) + np.dot(G.T, delta_w1 - delta_w2) + delta_gam
         delta_z1 = b - Ax - z1 - Adelta_x
         delta_z2 = h - Gx - z2 - Gdelta_x
         delta_z3 = Gx - h - z3 + Gdelta_x

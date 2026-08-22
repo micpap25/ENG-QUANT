@@ -52,7 +52,7 @@ def remap_lower_bounds(f_name: str = "toy.json", verbose: bool = False,
                     objective["expr"]["constant"] += difference * linear_term["coef"]
                     break
 
-    with open('remap_lower.json', 'w', encoding='utf-8') as f:
+    with open('linear_approx.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
 
     if verbose:

@@ -15,7 +15,6 @@ def solve_lp(f_name: str = "linear_approx.json",
 
     # Create a new model
     m = gp.Model("lp_from_json")
-    m.Params.OutputFlag = 0
     
     # Assign the variable names to Gurobi variables
     var_name_to_gurobi_var = {}
@@ -62,6 +61,12 @@ def solve_lp(f_name: str = "linear_approx.json",
             m.addConstr(a <= constraint_data["upper"], constraint_name)
         else:
             m.addConstr(a >= constraint_data["lower"], constraint_name)
+
+    # Print the presolved problem
+    m.write("model.lp")
+    pre_m = m.presolve()
+    pre_m.printStats()
+    pre_m.write("presolved_model.lp")
 
     # solve the problem
     m.optimize()

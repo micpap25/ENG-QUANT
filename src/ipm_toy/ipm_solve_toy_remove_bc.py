@@ -14,6 +14,7 @@ def ratio(x_vec, delta_x_vec):
             rat = min(- x / delta_x , rat)
     return rat
 
+# Times the cost so we have an upper bound on the objective value
 def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2,
                 gamma: float = 0.5, precision: float = 1e-8,
                 alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16) -> None:
@@ -35,48 +36,53 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
 
     # Run II-IPM
     x = np.ones(n) * omega
-    z = np.ones(i) * omega
     y = np.ones(i) * omega
-    s = np.ones(n) * omega
+    z1 = np.ones(i) * omega
+    z2 = np.ones(n) * omega
+    lam = np.ones(n) * omega
 
     iteration = 0
     start_time = time.time()
 
     while True:
-        compl = np.dot(x, s) + np.dot(y, z)
+        compl = np.dot(y, z1) + np.dot(lam, z2)
 
         mu = compl * beta / m
 
-        X = np.diag(x)
         Y = np.diag(y)
-        S = np.diag(s)
-        Z = np.diag(z)
+        Z1 = np.diag(z1)
+        Z2 = np.diag(z2)
+        Lam = np.diag(lam)
 
-        ATZ_1 = np.dot(A.T, np.linalg.inv(Z))
+        ATZ_1 = np.dot(A.T, np.linalg.inv(Z1))
         ATZ_1Y = np.dot(ATZ_1, Y)
         Ax = np.dot(A, x)
         b_Ax = b - Ax
         ATy = np.dot(A.T, y)
+        Z2_1Lam = np.dot(np.linalg.inv(Z2), Lam)
 
-        M = np.dot(ATZ_1Y, A) + np.dot(np.linalg.inv(X), S)
+        M = np.dot(ATZ_1Y, A) + Z2_1Lam
 
-        r = np.dot(ATZ_1Y, b_Ax) - (mu * np.dot(A.T, np.reciprocal(z))) + (mu * np.reciprocal(x)) - ATy - c
+        r = np.dot(ATZ_1Y, b_Ax) - np.dot(Z2_1Lam, x) \
+            - (mu * np.dot(A.T, np.reciprocal(z1))) + (mu * np.reciprocal(z2)) - ATy - c + lam
 
         # Linear System Solve
         delta_x = np.linalg.solve(M, r)
 
         # Recover the steps
         Adelta_x = np.dot(A, delta_x)
-        delta_y = np.dot(np.linalg.inv(Z), np.dot(Y, Ax + Adelta_x - b) + (mu * np.ones(i)))
-        delta_z = b - Ax - z - Adelta_x
-        delta_s = c + ATy - s + np.dot(A.T, delta_y)
+        delta_y = np.dot(np.linalg.inv(Z1), np.dot(Y, Ax + Adelta_x - b) + (mu * np.ones(i)))
+        delta_lam = c + ATy - lam + np.dot(A.T, delta_y)
+        delta_z1 = b - Ax - z1 - Adelta_x
+        delta_z2 = x - z2 + delta_x
 
         alpha_star_x = ratio(x, delta_x)
         alpha_star_y = ratio(y, delta_y)
-        alpha_star_s = ratio(s, delta_s)
-        alpha_star_z = ratio(z, delta_z)
+        alpha_star_z1 = ratio(z1, delta_z1)
+        alpha_star_z2 = ratio(z2, delta_z2)
+        alpha_star_lam = ratio(lam, delta_lam)
 
-        alpha_hat = min(alpha_star_x, alpha_star_y, alpha_star_s, alpha_star_z, 1.0)
+        alpha_hat = min(alpha_star_x, alpha_star_y, alpha_star_z1, alpha_star_z2, alpha_star_lam, 1.0)
 
         # Calculate alpha_hat
         is_neighbor = False
@@ -84,22 +90,23 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         while not is_neighbor:
             x_temp = x + alpha_hat * delta_x
             y_temp = y + alpha_hat * delta_y
-            s_temp = s + alpha_hat * delta_s
-            z_temp = z + alpha_hat * delta_z
+            z1_temp = z1 + alpha_hat * delta_z1
+            z2_temp = z2 + alpha_hat * delta_z2
+            lam_temp = lam + alpha_hat * delta_lam
 
             # New complementarity value for every complementary pair of variables.
-            compl_temp = np.dot(y_temp, z_temp) + np.dot(x_temp, s_temp)
+            compl_temp = np.dot(y_temp, z1_temp) + np.dot(lam_temp, z2_temp)
             is_neighbor = True
 
-            for (yi, z1i) in zip(y_temp, z_temp):
+            for (yi, z1i) in zip(y_temp, z1_temp):
                 if yi * z1i < gamma * compl_temp / m:
                     alpha_hat *= alpha_hat_dec
                     is_neighbor = False
                     break
 
             if is_neighbor:
-                for (xi, si) in zip(x_temp, s_temp):
-                    if xi * si < gamma * compl_temp / m:
+                for (lami, z2i) in zip(lam_temp, z2_temp):
+                    if lami * z2i < gamma * compl_temp / m:
                         alpha_hat *= alpha_hat_dec
                         is_neighbor = False
                         break
@@ -108,7 +115,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
                 continue
 
             # The residual should be the norm of all the constraint errors
-            epsilon_primal = np.linalg.norm(np.dot(A.T, y_temp) - s_temp + c)
+            epsilon_primal = np.linalg.norm(np.dot(A.T, y_temp) - lam_temp + c)
 
             if epsilon_primal > max(compl_temp/gamma, precision):
                 alpha_hat *= alpha_hat_dec
@@ -120,7 +127,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
                 is_neighbor = False
                 continue
 
-            epsilon_dual = np.linalg.norm(np.dot(A, x_temp) + z_temp - b)
+            epsilon_dual = np.linalg.norm(np.concatenate((np.dot(A, x_temp) + z1_temp - b, -x_temp + z2_temp)))
 
             if epsilon_dual > max(compl_temp/gamma, precision):
                 alpha_hat *= alpha_hat_dec
@@ -129,16 +136,17 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
 
         x = x_temp
         y = y_temp
-        s = s_temp
-        z = z_temp
+        z1 = z1_temp
+        z2 = z2_temp
+        lam = lam_temp
 
-        if max(abs(entry) for entry in np.concatenate((x, y, s, z))) > 2 * m * omega:
+        if max(abs(entry) for entry in np.concatenate((x, y, z1, z2, lam))) > 2 * m * omega:
             print("The problem is infeasible.")
             break
 
         iteration += 1
 
-        compl = np.dot(y, z) + np.dot(x, s)
+        compl = np.dot(y, z1) + np.dot(lam, z2)
 
         if compl <= precision:
             print("Solution is below target precision.")
@@ -148,8 +156,8 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         print(f"{'Primal objective:':20}{np.dot(b, y):<15.8e}")
         print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
         print()
-        print(f"{'Primal residual:':20}{np.linalg.norm(np.dot(A.T, y) - s + c):<8.2e}")
-        print(f"{'Dual residual:':20}{np.linalg.norm(np.dot(A, x) + z - b):<8.2e}")
+        print(f"{'Primal residual:':20}{np.linalg.norm(np.dot(A.T, y) - lam + c):<8.2e}")
+        print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((np.dot(A, x) + z1 - b, -x + z2))):<8.2e}")
         print(f"{'Complementarity:':20}{compl:<8.2e}")
         print()
 
@@ -163,8 +171,8 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
     print(f"{'Primal objective:':20}{np.dot(b, y):<15.8e}")
     print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
     print()
-    print(f"{'Primal residual:':20}{np.linalg.norm(np.dot(A.T, y) - s + c):<8.2e}")
-    print(f"{'Dual residual:':20}{np.linalg.norm(np.dot(A, x) + z - b):<8.2e}")
+    print(f"{'Primal residual:':20}{np.linalg.norm(np.dot(A.T, y) - lam + c):<8.2e}")
+    print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((np.dot(A, x) + z1 - b, -x + z2))):<8.2e}")
     print(f"{'Complementarity:':20}{compl:<8.2e}")
     print()
     print(x)

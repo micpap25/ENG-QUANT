@@ -76,7 +76,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         Adelta_x = np.dot(A, delta_x)
         delta_y = (y * (Ax + Adelta_x - b) + mu) / z1
         delta_gam = (gam * (x + delta_x - u) + mu) / z2
-        delta_lam = (mu - lam * (delta_x + x)) / z3
+        delta_lam = c + np.dot(A.T, y) + gam - lam + np.dot(A.T, delta_y) + delta_gam
         delta_z1 = b - Ax - z1 - Adelta_x
         delta_z2 = u - x - z2 - delta_x
         delta_z3 = x - z3 + delta_x
