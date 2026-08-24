@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 # Take in an LP and compute the condition number of a matrix
 # That should represent the system being solved in the QIPM
 # According to discussions on 4/30/2026
-# If the problem is min c^Tx  s.t. Ax = b, A'x >= d, -x >= -u, x >= l
-# Then the matrix is A^TA + A'^TA' + 2I
+# If the problem is min c^Tx  s.t. Gx = h, Ax >= b, -x >= -u, x >= l
+# Then the matrix is 2G^TG + A^TA + 2I
 # This assumes the variables are bounded on both sides
 def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.json",
                                 verbose: bool = False) -> float:
@@ -35,8 +35,8 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
             f"and {n_inequality_constraints} non-bound inequality constraints")
 
     # Create the matrices of constraints
-    A = np.zeros((n_equality_constraints, n_variables))
-    A_bar = np.zeros((n_inequality_constraints, n_variables))
+    G = np.zeros((n_equality_constraints, n_variables))
+    A = np.zeros((n_inequality_constraints, n_variables))
 
     equality_pointer = 0
     inequality_pointer = 0
@@ -47,27 +47,27 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         if constraint_data["equality"]:
             for lin_variable in linear_data:
                 name = var_name_to_row_index[lin_variable["var"]]
-                A[equality_pointer, name] = lin_variable["coef"]
+                G[equality_pointer, name] = lin_variable["coef"]
             equality_pointer += 1
         else:
             if constraint_data["lower"] is None:
                 # it is a <= constraint, so flip it
                 for lin_variable in linear_data:
                     name = var_name_to_row_index[lin_variable["var"]]
-                    A_bar[inequality_pointer, name] = -lin_variable["coef"]
+                    A[inequality_pointer, name] = -lin_variable["coef"]
             else:
                 for lin_variable in linear_data:
                     name = var_name_to_row_index[lin_variable["var"]]
-                    A_bar[inequality_pointer, name] = lin_variable["coef"]
+                    A[inequality_pointer, name] = lin_variable["coef"]
             inequality_pointer += 1
 
     # Remove columns of unused variables
-    a_nonzeros = np.any(A != 0, axis=0)
-    a_bar_nonzeros = np.any(A_bar != 0, axis=0)
+    a_nonzeros = np.any(G != 0, axis=0)
+    a_bar_nonzeros = np.any(A != 0, axis=0)
     mask = a_nonzeros | a_bar_nonzeros
 
+    G = G[:, mask]
     A = A[:, mask]
-    A_bar = A_bar[:, mask]
 
     removed_vars = np.count_nonzero(mask == False)
     n_variables -= removed_vars
@@ -76,15 +76,18 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         print(f"Removed {removed_vars} unused variables")
 
     if verbose:
+        print(f"G =\n{G}")
+        print(f"cond(G) = {np.linalg.cond(G)}")
+        print(f"2G^TG = \n{np.multiply(2, np.matmul(np.transpose(G), G))}")
+        print(f"cond(2G^TG) = {np.linalg.cond(np.multiply(2, np.matmul(np.transpose(G), G)))}")
         print(f"A =\n{A}")
-        print(f"cond(A) = {np.linalg.cond(A)}")
-        print(f"A' =\n{A_bar}")
-        if len(A_bar) > 0:
-            print(f"cond(A') = {np.linalg.cond(A_bar)}")
-        print(f"frr A' = {np.linalg.matrix_rank(A) == A.shape[0]}")
+        if len(A) > 0:
+            print(f"cond(A) = {np.linalg.cond(A)}")
+            print(f"cond(A^TA) = {np.linalg.cond(np.matmul(np.transpose(A), A))}")
+        print(f"frr A = {np.linalg.matrix_rank(G) == G.shape[0]}")
 
-    final_matrix = np.multiply(2, np.matmul(np.transpose(A), A)) \
-                    + np.matmul(np.transpose(A_bar), A_bar) \
+    final_matrix = np.multiply(2, np.matmul(np.transpose(G), G)) \
+                    + np.matmul(np.transpose(A), A) \
                     + np.multiply(bounds, np.identity(n_variables))
 
     if verbose:
@@ -93,13 +96,14 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         non_zero_count = np.count_nonzero(final_matrix)
         sparsity = 1.0 - (non_zero_count / final_matrix.size)
         print(f"Sparsity of NES: {sparsity}")
-        print(plt.spy(final_matrix))
+        # print(plt.spy(final_matrix))
+        print(f"invertible NES: {np.linalg.matrix_rank(final_matrix) == final_matrix.shape[0]}")
 
     return np.linalg.cond(final_matrix)
 
 # Take in an LP and compute the condition number of A
 # Ignoring the bound constraints
-def condition_number_no_bounds(f_name: str = "linear_approx.json", 
+def condition_number_no_bounds(f_name: str = "linear_approx.json",
                                 verbose: bool = False) -> float:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)

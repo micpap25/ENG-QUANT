@@ -56,6 +56,7 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
         edge_1 = setup_universal_var()
         edge_1["lower"] = lf
         edge_1["upper"] = lambd**2
+        # edge_1["upper"] = min(uf, lambd**2)
         variables["f[production" + str(3*f - 2) + "_transient" + str(f) + "]"] = edge_1
 
         edge_2 = setup_universal_var()
@@ -86,6 +87,14 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
 
     # Constraints
     constraints = {}
+
+    # Fix the pressure of a production node
+    fixed_pressure = setup_universal_lineq()
+    fixed_pressure["body"]["constant"] = up
+
+    fixed_pressure["body"]["linear"] = [{"var": "p[production1]", "coef": -1.0}]
+        
+    constraints["fp[production1]"] = fixed_pressure
 
     # Flow production constraints
     for fc in range(1, n+1):

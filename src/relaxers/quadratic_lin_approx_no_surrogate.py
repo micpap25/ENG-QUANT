@@ -13,6 +13,7 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                                         remove_division: bool = False,
                                         points_function: Callable[[float, float, int], FloatArray] = np.linspace,
+                                        endpoints: bool = True,
                                         f_name: str = "toy.json",
                                         verbose: bool = False) -> None:
 
@@ -58,7 +59,12 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
             # Add linear approximation constraints
             if outer_approximation:
                 # Tangent line at each point
-                points = points_function(lower, upper, eps)
+                if endpoints:
+                    points = points_function(lower, upper, eps)
+                else:
+                    points = points_function(lower, upper, eps + 2)[1:-1]
+                if verbose:
+                    print(points)
                 for i in range(eps):
                     point = points[i]
                     fun_point = quadratic_coef * point**2
@@ -73,7 +79,12 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
 
             else:
                 # Secant line between each two points
-                points = points_function(lower, upper, eps + 1)
+                if endpoints:
+                    points = points_function(lower, upper, eps + 1)
+                else:
+                    points = points_function(lower, upper, eps + 3)[1:-1]
+                if verbose:
+                    print(points)
                 for i in range(eps):
                     point_1 = points[i]
                     point_2 = points[i+1]
@@ -118,7 +129,7 @@ if __name__ == "__main__":
         return np.linspace(lower, lower + ((upper - lower)/concat), num)
 
     # The number of linear constraints to use per quadratic constraint
-    EPS = 100
+    EPS = 10
 
     # Whether to do an inner or outer approximation
     OUTER_APPROXIMATION = True

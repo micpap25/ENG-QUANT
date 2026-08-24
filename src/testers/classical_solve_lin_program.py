@@ -15,6 +15,7 @@ def solve_lp(f_name: str = "linear_approx.json",
 
     # Create a new model
     m = gp.Model("lp_from_json")
+    m.Params.OutputFlag = 0
     
     # Assign the variable names to Gurobi variables
     var_name_to_gurobi_var = {}

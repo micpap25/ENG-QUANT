@@ -13,11 +13,29 @@ def ratio(x_vec, delta_x_vec):
             rat = min(- x / delta_x , rat)
     return rat
 
-# TODO: Presolve the production nodes instead of writing them out of the formulation to get below information.
-# In the future, compute Omega directly as the sum of the upper bounds of the production constraints
-# Times the cost so we have an upper bound on the objective value
+
+def ruiz_solve(matrix, vector, iterations=8):
+    """Solve a linear system after symmetric Ruiz equilibration."""
+    scaled_matrix = np.asarray(matrix, dtype=float).copy()
+    scaled_vector = np.asarray(vector, dtype=float).copy()
+    scaling = np.ones(scaled_matrix.shape[0])
+
+    for _ in range(iterations):
+        # M is symmetric; scaling by the row infinity norms is therefore
+        # equivalent to using the corresponding column norms as well.
+        norms = np.max(np.abs(scaled_matrix), axis=1)
+        norms = np.maximum(norms, np.finfo(float).tiny)
+        step_scaling = 1.0 / np.sqrt(norms)
+        scaled_matrix = step_scaling[:, None] * scaled_matrix * step_scaling[None, :]
+        scaled_vector *= step_scaling
+        scaling *= step_scaling
+
+    # scaled_matrix y = scaled_vector, with x = D y.
+    print(np.linalg.cond(scaled_matrix))
+    return scaling * np.linalg.solve(scaled_matrix, scaled_vector)
+
 def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
-                beta2: float = 1 - 5e-4, omega: float = 5e3,
+                beta2: float = 1 - 5e-4, omega: float = 1e4,
                 gamma: float = 0.5, precision: float = 1e-8,
                 alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
                 verbose: bool = False) -> None:
@@ -30,6 +48,11 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
     e = len(h)
     n = len(c)  # Number of variables
     m = i + 2*e + 2*n  # Number of constraints
+
+    # A naive bound on omega
+    max_cost = np.dot(np.clip(c, 0, None), u)
+    print(max_cost)
+    omega = min(max_cost, omega)
 
     # problem-to-eq-ineq-matrix sanity check
     assert len(A) == i
@@ -90,7 +113,8 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
             - c - ATy - GTw1_w2 - gam + lam
 
         # Linear System Solve
-        delta_x = np.linalg.solve(M, r)
+        print(np.linalg.cond(M))
+        delta_x = ruiz_solve(M, r)
 
         # Recover the steps
         Adelta_x = np.dot(A, delta_x)
