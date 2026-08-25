@@ -38,6 +38,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
                 beta2: float = 1 - 5e-4, omega: float = 1e4,
                 gamma: float = 0.5, precision: float = 1e-8,
                 alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
+                neighborhood: str = "Large",
                 verbose: bool = False) -> None:
     np.set_printoptions(linewidth=200)
 
@@ -53,6 +54,8 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
     max_cost = np.dot(np.clip(c, 0, None), u)
     print(max_cost)
     omega = min(max_cost, omega)
+    if omega == max_cost:
+        print("omega was limited by the max cost")
 
     # problem-to-eq-ineq-matrix sanity check
     assert len(A) == i
@@ -114,6 +117,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
         # Linear System Solve
         print(np.linalg.cond(M))
+        # delta_x = np.linalg.solve(M, r)
         delta_x = ruiz_solve(M, r)
 
         # Recover the steps
@@ -170,39 +174,46 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
                 + np.dot(w2_temp, z3_temp) + np.dot(gam_temp, z4_temp) + np.dot(lam_temp, z5_temp)
             is_neighbor = True
 
-            for (yi, z1i) in zip(y_temp, z1_temp):
-                if yi * z1i < gamma * compl_temp / m:
-                    alpha_hat *= alpha_hat_dec
-                    is_neighbor = False
-                    break
-
-            if is_neighbor:
-                for (w1i, z2i) in zip(w1_temp, z2_temp):
-                    if w1i * z2i < gamma * compl_temp / m:
+            # This is the "Large neighborhood" approach (every component of the compl.
+            # is not too small.)
+            if neighborhood == "Large":
+                for (yi, z1i) in zip(y_temp, z1_temp):
+                    if yi * z1i < gamma * compl_temp / m:
                         alpha_hat *= alpha_hat_dec
                         is_neighbor = False
                         break
 
-            if is_neighbor:
-                for (w2i, z3i) in zip(w2_temp, z3_temp):
-                    if w2i * z3i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
+                if is_neighbor:
+                    for (w1i, z2i) in zip(w1_temp, z2_temp):
+                        if w1i * z2i < gamma * compl_temp / m:
+                            alpha_hat *= alpha_hat_dec
+                            is_neighbor = False
+                            break
 
-            if is_neighbor:
-                for (gami, z4i) in zip(gam_temp, z4_temp):
-                    if gami * z4i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
+                if is_neighbor:
+                    for (w2i, z3i) in zip(w2_temp, z3_temp):
+                        if w2i * z3i < gamma * compl_temp / m:
+                            alpha_hat *= alpha_hat_dec
+                            is_neighbor = False
+                            break
 
-            if is_neighbor:
-                for (lami, z5i) in zip(lam_temp, z5_temp):
-                    if lami * z5i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
+                if is_neighbor:
+                    for (gami, z4i) in zip(gam_temp, z4_temp):
+                        if gami * z4i < gamma * compl_temp / m:
+                            alpha_hat *= alpha_hat_dec
+                            is_neighbor = False
+                            break
+
+                if is_neighbor:
+                    for (lami, z5i) in zip(lam_temp, z5_temp):
+                        if lami * z5i < gamma * compl_temp / m:
+                            alpha_hat *= alpha_hat_dec
+                            is_neighbor = False
+                            break
+            
+            # Neighborhood is "small"
+            else:
+                pass
 
             if not is_neighbor:
                 continue

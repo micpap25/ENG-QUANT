@@ -13,6 +13,7 @@ from variable_definitions import (
 def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
                         gamma: float, lambd: float, eps: float, delta: float,
                         lp: float, lf: float, up: float, convex_relax: bool = True,
+                        fix_p: bool = False,
                         f_out: str = "toy.json", verbose: bool = False) -> None:
 
     d = lambd**2 + delta
@@ -89,12 +90,13 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
     constraints = {}
 
     # Fix the pressure of a production node
-    fixed_pressure = setup_universal_lineq()
-    fixed_pressure["body"]["constant"] = up
+    if fix_p:
+        fixed_pressure = setup_universal_lineq()
+        fixed_pressure["body"]["constant"] = up
 
-    fixed_pressure["body"]["linear"] = [{"var": "p[production1]", "coef": -1.0}]
-        
-    constraints["fp[production1]"] = fixed_pressure
+        fixed_pressure["body"]["linear"] = [{"var": "p[production1]", "coef": -1.0}]
+            
+        constraints["fp[production1]"] = fixed_pressure
 
     # Flow production constraints
     for fc in range(1, n+1):

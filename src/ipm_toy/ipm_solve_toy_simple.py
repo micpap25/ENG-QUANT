@@ -17,7 +17,8 @@ def ratio(x_vec, delta_x_vec):
 # Times the cost so we have an upper bound on the objective value
 def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2,
                 gamma: float = 0.5, precision: float = 1e-8,
-                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16) -> None:
+                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
+                neighborhood: str = "Large") -> None:
     np.set_printoptions(linewidth=200)
 
     # Primal solution is (3, 1), obj = 9
@@ -34,7 +35,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
     assert len(A) == i
     assert len(A[0]) == n
 
-    # Run II-IPM 
+    # Run II-IPM
     x = np.ones(n) * omega
     z = np.ones(i) * omega
     y = np.ones(i) * omega
@@ -92,18 +93,23 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
             compl_temp = np.dot(y_temp, z_temp) + np.dot(x_temp, s_temp)
             is_neighbor = True
 
-            for (yi, z1i) in zip(y_temp, z_temp):
-                if yi * z1i < gamma * compl_temp / m:
-                    alpha_hat *= alpha_hat_dec
-                    is_neighbor = False
-                    break
-
-            if is_neighbor:
-                for (xi, si) in zip(x_temp, s_temp):
-                    if xi * si < gamma * compl_temp / m:
+            if neighborhood == "Large":
+                for (yi, z1i) in zip(y_temp, z_temp):
+                    if yi * z1i < gamma * compl_temp / m:
                         alpha_hat *= alpha_hat_dec
                         is_neighbor = False
                         break
+
+                if is_neighbor:
+                    for (xi, si) in zip(x_temp, s_temp):
+                        if xi * si < gamma * compl_temp / m:
+                            alpha_hat *= alpha_hat_dec
+                            is_neighbor = False
+                            break
+
+            # Neighborhood is small
+            else:
+                pass
 
             if not is_neighbor:
                 continue

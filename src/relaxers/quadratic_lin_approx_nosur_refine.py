@@ -8,13 +8,13 @@ from numpy.typing import NDArray
 type FloatArray = Sequence[float] | NDArray[np.float64]
 
 # Linear approximation of a convex QCP, but with no surrogate variable
-# The quadratic term for each inequality is a single variable squared (plus linear terms and constants)
-# Can use either tangent lines (outer approx) or secant lines (inner approx)
-def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
-                                        remove_division: bool = False,
-                                        points_function: Callable[[float, float, int], FloatArray] = np.linspace,
-                                        f_name: str = "toy.json",
-                                        verbose: bool = False) -> None:
+# Number of quadratic variables and a points distribution function for each are passed in.
+def quadratic_lin_approx_no_surrogate_refine(eps: int, outer_approximation: bool,
+                                                points_function: list[Callable[[float, float, int], FloatArray]],
+                                                remove_division: bool = False,
+                                                endpoints: bool = True,
+                                                f_name: str = "toy.json",
+                                                verbose: bool = False) -> None:
 
     if not outer_approximation and remove_division:
         print("You are setting remove_division to True for a no-surrogate approximation.\n" \
@@ -28,6 +28,8 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
 
     variables = data["variables"]
     constraints = data["constraints"]
+
+    quad_var_count = 0
 
     linear_approx_constraints = []
 
@@ -58,7 +60,12 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
             # Add linear approximation constraints
             if outer_approximation:
                 # Tangent line at each point
-                points = points_function(lower, upper, eps)
+                if endpoints:
+                    points = points_function[quad_var_count](lower, upper, eps)
+                else:
+                    points = points_function[quad_var_count](lower, upper, eps + 2)[1:-1]
+                if verbose:
+                    print(points)
                 for i in range(eps):
                     point = points[i]
                     fun_point = quadratic_coef * point**2
@@ -73,7 +80,12 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
 
             else:
                 # Secant line between each two points
-                points = points_function(lower, upper, eps + 1)
+                if endpoints:
+                    points = points_function[quad_var_count](lower, upper, eps + 1)
+                else:
+                    points = points_function[quad_var_count](lower, upper, eps + 3)[1:-1]
+                if verbose:
+                    print(points)
                 for i in range(eps):
                     point_1 = points[i]
                     point_2 = points[i+1]
@@ -86,7 +98,6 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                     constraint["body"]["quadratic"] = []
                     if remove_division:
                         m = fun_point_2 - fun_point_1
-                        # TODO: Test this line further
                         constraint["body"]["constant"] *= lambd
                         constraint["body"]["constant"] += lambd*fun_point_1 - m*point_1
                     else:
@@ -96,6 +107,8 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                     constraint["body"]["linear"].append({"var": quadratic_variable, "coef": m})
                     constraint_name = quadratic_variable + "_inner_lin_approx_" + str(i)
                     linear_approx_constraints.append(tuple((constraint_name, constraint)))
+
+            quad_var_count += 1
 
     for constraint_name, constraint in linear_approx_constraints:
         constraints[constraint_name] = constraint
@@ -110,21 +123,3 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
 
     if verbose:
         print(f'Made a linear approximation with {len(constraints)} (non-bound) constraints.')
-
-if __name__ == "__main__":
-
-    concat = 1.66
-    def np_uniform_bunch_low(lower: float, upper: float, num: int):
-        return np.linspace(lower, lower + ((upper - lower)/concat), num)
-
-    # The number of linear constraints to use per quadratic constraint
-    EPS = 20
-
-    # Whether to do an inner or outer approximation
-    OUTER_APPROXIMATION = True
-
-    # File to import the quadratic model from
-    F_NAME = "toy.json"
-
-    quadratic_lin_approx_no_surrogate(EPS, OUTER_APPROXIMATION, points_function=np_uniform_bunch_low,
-                                        f_name=F_NAME, verbose=True)
