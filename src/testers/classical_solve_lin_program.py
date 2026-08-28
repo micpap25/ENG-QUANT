@@ -15,7 +15,8 @@ def solve_lp_return_x(f_name: str = "linear_approx.json",
 
     # Create a new model
     m = gp.Model("lp_from_json")
-    m.Params.OutputFlag = 0
+    if not verbose:
+        m.Params.OutputFlag = 0
     
     # Assign the variable names to Gurobi variables
     var_name_to_gurobi_var = {}
@@ -76,9 +77,11 @@ def solve_lp_return_x(f_name: str = "linear_approx.json",
         print("Model is not feasible")
         return (None, None, None)
     else:
-        if verbose:
-            for variable, gurobi_variable in var_name_to_gurobi_var.items():
-                print(variable + ": " + str(gurobi_variable.X))
+        # if verbose:
+        #     for variable, gurobi_variable in var_name_to_gurobi_var.items():
+        #         print(variable + ": " + str(gurobi_variable.X))
+        m.update()
+        m.printQuality()
 
         return m.ObjVal, m.Runtime, m.X
 

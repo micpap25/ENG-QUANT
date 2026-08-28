@@ -3,7 +3,7 @@ import math
 
 # Transform the problem to remap the lower bounds, introducing constants instead
 # If any variable with a lower bound is used in quadratics, throw an error
-def remap_lower_bounds(f_name: str = "toy.json", verbose: bool = False,
+def remap_lower_bounds(f_name: str = "linear_approx.json", verbose: bool = False,
                         quadratic_check: bool = True, lb: float = 0) -> None:
 
     with open(f_name, 'r', encoding='utf-8') as file:

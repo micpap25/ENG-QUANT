@@ -16,7 +16,8 @@ def ratio(x_vec, delta_x_vec):
 
 def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2,
                 gamma: float = 0.5, precision: float = 1e-7,
-                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16) -> None:
+                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
+                neighborhood: str = "Large") -> None:
     np.set_printoptions(linewidth=200)
 
     # Dual solution is (0, 4, 0), obj = 8
@@ -143,44 +144,27 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
             z4_temp = z4 + alpha_hat * delta_z4
             z5_temp = z5 + alpha_hat * delta_z5
 
-            # New complementarity value for every complementary pair of variables.
             compl_temp = np.dot(y_temp, z1_temp) + np.dot(w1_temp, z2_temp) \
                 + np.dot(w2_temp, z3_temp) + np.dot(gam_temp, z4_temp) + np.dot(lam_temp, z5_temp)
+            mu_temp = compl_temp / m
+            compl_vec = np.concat((y_temp * z1_temp, w1_temp* z2_temp, w2_temp * z3_temp,
+                                    gam_temp * z4_temp, lam_temp * z5_temp))
+
             is_neighbor = True
 
-            for (yi, z1i) in zip(y_temp, z1_temp):
-                if yi * z1i < gamma * compl_temp / m:
+            if neighborhood == "Large":
+                for comp in compl_vec:
+                    if comp < gamma * mu_temp:
+                        alpha_hat *= alpha_hat_dec
+                        is_neighbor = False
+                        break
+
+            # Neighborhood is small
+            else:
+                print(np.linalg.norm((compl_vec / mu_temp) - np.ones(m)))
+                if np.linalg.norm((compl_vec / mu_temp) - np.ones(m)) > gamma:
                     alpha_hat *= alpha_hat_dec
                     is_neighbor = False
-                    break
-
-            if is_neighbor:
-                for (w1i, z2i) in zip(w1_temp, z2_temp):
-                    if w1i * z2i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
-
-            if is_neighbor:
-                for (w2i, z3i) in zip(w2_temp, z3_temp):
-                    if w2i * z3i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
-
-            if is_neighbor:
-                for (gami, z4i) in zip(gam_temp, z4_temp):
-                    if gami * z4i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
-
-            if is_neighbor:
-                for (lami, z5i) in zip(lam_temp, z5_temp):
-                    if lami * z5i < gamma * compl_temp / m:
-                        alpha_hat *= alpha_hat_dec
-                        is_neighbor = False
-                        break
 
             if not is_neighbor:
                 continue
@@ -201,7 +185,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
                 continue
 
             Gx_temp = np.dot(G, x_temp)
-            epsilon_dual = np.linalg.norm(np.concatenate((
+            epsilon_dual = np.linalg.norm(np.concat((
                 np.dot(A, x_temp) + z1_temp - b,
                 Gx_temp + z2_temp - h,
                 -Gx_temp + z3_temp + h,
@@ -226,7 +210,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         z4 = z4_temp
         z5 = z5_temp
 
-        if max(abs(entry) for entry in np.concatenate(
+        if max(abs(entry) for entry in np.concat(
             (x, y, w1, w2, gam, lam, z1, z2, z3, z4, z5)
         )) > 2 * m * omega:
             print("The problem is infeasible.")
@@ -257,7 +241,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         print(f"{'Primal residual:':20}{np.linalg.norm(
             np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
         ):<8.2e}")
-        print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((
+        print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
                 np.dot(A, x) + z1 - b,
                 Gx + z2 - h,
                 -Gx + z3 + h,
@@ -280,7 +264,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
     print(f"{'Primal residual:':20}{np.linalg.norm(
         np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
     ):<8.2e}")
-    print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((
+    print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
             np.dot(A, x) + z1 - b,
             Gx + z2 - h,
             -Gx + z3 + h,

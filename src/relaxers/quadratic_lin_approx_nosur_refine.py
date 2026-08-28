@@ -65,7 +65,7 @@ def quadratic_lin_approx_no_surrogate_refine(eps: int, outer_approximation: bool
                 else:
                     points = points_function[quad_var_count](lower, upper, eps + 2)[1:-1]
                 if verbose:
-                    print(points)
+                    print(f"Approximation points for quadratic variable {quadratic_variable}:\n{points}")
                 for i in range(eps):
                     point = points[i]
                     fun_point = quadratic_coef * point**2

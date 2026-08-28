@@ -89,27 +89,25 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
             s_temp = s + alpha_hat * delta_s
             z_temp = z + alpha_hat * delta_z
 
-            # New complementarity value for every complementary pair of variables.
             compl_temp = np.dot(y_temp, z_temp) + np.dot(x_temp, s_temp)
+            mu_temp = compl_temp / m
+            compl_vec = np.concat((y_temp * z_temp, x_temp * s_temp))
+
             is_neighbor = True
 
             if neighborhood == "Large":
-                for (yi, z1i) in zip(y_temp, z_temp):
-                    if yi * z1i < gamma * compl_temp / m:
+                for comp in compl_vec:
+                    if comp < gamma * mu_temp:
                         alpha_hat *= alpha_hat_dec
                         is_neighbor = False
                         break
 
-                if is_neighbor:
-                    for (xi, si) in zip(x_temp, s_temp):
-                        if xi * si < gamma * compl_temp / m:
-                            alpha_hat *= alpha_hat_dec
-                            is_neighbor = False
-                            break
-
             # Neighborhood is small
             else:
-                pass
+                compl_vec = np.concat((y_temp * z_temp, x_temp * s_temp))
+                if np.linalg.norm((compl_vec / mu_temp) - np.ones(m)) > gamma:
+                    alpha_hat *= alpha_hat_dec
+                    is_neighbor = False
 
             if not is_neighbor:
                 continue
@@ -139,7 +137,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         s = s_temp
         z = z_temp
 
-        if max(abs(entry) for entry in np.concatenate((x, y, s, z))) > 2 * m * omega:
+        if max(abs(entry) for entry in np.concat((x, y, s, z))) > 2 * m * omega:
             print("The problem is infeasible.")
             break
 
@@ -178,4 +176,4 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
     print(x)
     
 if __name__ == "__main__":
-    ipm_solve_toy()
+    ipm_solve_toy(neighborhood="Large")

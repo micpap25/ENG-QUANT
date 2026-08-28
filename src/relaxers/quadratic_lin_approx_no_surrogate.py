@@ -64,7 +64,7 @@ def quadratic_lin_approx_no_surrogate(eps: int, outer_approximation: bool,
                 else:
                     points = points_function(lower, upper, eps + 2)[1:-1]
                 if verbose:
-                    print(points)
+                    print(f"Approximation points for quadratic variable {quadratic_variable}:\n{points}")
                 for i in range(eps):
                     point = points[i]
                     fun_point = quadratic_coef * point**2
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     OUTER_APPROXIMATION = True
 
     # File to import the quadratic model from
-    F_NAME = "model11_quad_reform_2.json"
+    F_NAME = "model11_quad_reform_nofix.json"
 
     quadratic_lin_approx_no_surrogate(EPS, OUTER_APPROXIMATION,
                                         f_name=F_NAME, verbose=True)

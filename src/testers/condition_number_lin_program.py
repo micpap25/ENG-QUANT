@@ -61,19 +61,19 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
                     A[inequality_pointer, name] = lin_variable["coef"]
             inequality_pointer += 1
 
-    # Remove columns of unused variables
-    a_nonzeros = np.any(G != 0, axis=0)
-    a_bar_nonzeros = np.any(A != 0, axis=0)
-    mask = a_nonzeros | a_bar_nonzeros
+    # # Remove columns of unused variables
+    # a_nonzeros = np.any(G != 0, axis=0)
+    # a_bar_nonzeros = np.any(A != 0, axis=0)
+    # mask = a_nonzeros | a_bar_nonzeros
 
-    G = G[:, mask]
-    A = A[:, mask]
+    # G = G[:, mask]
+    # A = A[:, mask]
 
-    removed_vars = np.count_nonzero(mask == False)
-    n_variables -= removed_vars
+    # removed_vars = np.count_nonzero(mask == False)
+    # n_variables -= removed_vars
 
-    if verbose:
-        print(f"Removed {removed_vars} unused variables")
+    # if verbose:
+    #     print(f"Removed {removed_vars} unused variables")
 
     if verbose:
         print(f"G =\n{G}")
@@ -96,8 +96,10 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         non_zero_count = np.count_nonzero(final_matrix)
         sparsity = 1.0 - (non_zero_count / final_matrix.size)
         print(f"Sparsity of NES: {sparsity}")
-        # print(plt.spy(final_matrix))
         print(f"invertible NES: {np.linalg.matrix_rank(final_matrix) == final_matrix.shape[0]}")
+        print(plt.spy(final_matrix))
+        # print(plt.spy(np.matmul(np.transpose(A), A)))
+        # print(plt.spy(np.matmul(np.transpose(G), G)))
 
     return np.linalg.cond(final_matrix)
 

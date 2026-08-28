@@ -3,8 +3,8 @@ import gurobipy as gp
 from gurobipy import GRB
 
 # Take in a QCP from a JSON and solve it
-def solve_qcp(f_name: str,
-                verbose: bool = False) -> tuple[float | None, float | None]:
+def solve_qcp_return_x(f_name: str,
+                        verbose: bool = False) -> tuple[float | None, float | None, float | None]:
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -73,14 +73,18 @@ def solve_qcp(f_name: str,
 
     if m.Status == GRB.INFEASIBLE:
         print("Model is not feasible")
-        return (None, None)
+        return (None, None, None)
     else:
         if verbose:
             for variable, gurobi_variable in var_name_to_gurobi_var.items():
                 print(variable + ": " + str(gurobi_variable.X))
 
-        return m.ObjVal, m.Runtime
+        return m.ObjVal, m.Runtime, m.X
 
+def solve_qcp(f_name: str = "linear_approx.json",
+                        verbose: bool = False) -> tuple[float | None, float | None]:
+    val, time, _ = solve_qcp_return_x(f_name=f_name, verbose=verbose)
+    return val, time
 
 
 if __name__ == "__main__":

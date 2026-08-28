@@ -14,7 +14,7 @@ def ratio(x_vec, delta_x_vec):
     return rat
 
 
-def ruiz_solve(matrix, vector, iterations=8):
+def ruiz_solve(matrix, vector, iterations=8, verbose=False):
     """Solve a linear system after symmetric Ruiz equilibration."""
     scaled_matrix = np.asarray(matrix, dtype=float).copy()
     scaled_vector = np.asarray(vector, dtype=float).copy()
@@ -31,7 +31,8 @@ def ruiz_solve(matrix, vector, iterations=8):
         scaling *= step_scaling
 
     # scaled_matrix y = scaled_vector, with x = D y.
-    print(np.linalg.cond(scaled_matrix))
+    if verbose:
+        print(f"Condition number after pre-conditioning: {np.linalg.cond(scaled_matrix)}")
     return scaling * np.linalg.solve(scaled_matrix, scaled_vector)
 
 def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
@@ -39,23 +40,23 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
                 gamma: float = 0.5, precision: float = 1e-8,
                 alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
                 neighborhood: str = "Large",
-                verbose: bool = False) -> None:
+                verbose: bool = False):
     np.set_printoptions(linewidth=200)
 
     # Gurobi output pops up here because of license file
     A, b, G, h, u, c = problem_to_eq_ineq_matrices(f_name=f_name, verbose=False)
-
     i = len(b)
     e = len(h)
-    n = len(c)  # Number of variables
+    n = len(c) # Number of variables
     m = i + 2*e + 2*n  # Number of constraints
 
     # A naive bound on omega
     max_cost = np.dot(np.clip(c, 0, None), u)
-    print(max_cost)
     omega = min(max_cost, omega)
-    if omega == max_cost:
-        print("omega was limited by the max cost")
+    if verbose:
+        print(max_cost)
+        if omega == max_cost:
+            print("omega was limited by the max cost")
 
     # problem-to-eq-ineq-matrix sanity check
     assert len(A) == i
@@ -116,9 +117,10 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
             - c - ATy - GTw1_w2 - gam + lam
 
         # Linear System Solve
-        print(np.linalg.cond(M))
+        if verbose:
+            print(f"Condition number before pre-conditioning: {np.linalg.cond(M)}")
         # delta_x = np.linalg.solve(M, r)
-        delta_x = ruiz_solve(M, r)
+        delta_x = ruiz_solve(M, r, verbose=verbose)
 
         # Recover the steps
         Adelta_x = np.dot(A, delta_x)
@@ -169,51 +171,27 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
             z4_temp = z4 + alpha_hat * delta_z4
             z5_temp = z5 + alpha_hat * delta_z5
 
-            # New complementarity value for every complementary pair of variables.
             compl_temp = np.dot(y_temp, z1_temp) + np.dot(w1_temp, z2_temp) \
                 + np.dot(w2_temp, z3_temp) + np.dot(gam_temp, z4_temp) + np.dot(lam_temp, z5_temp)
+            mu_temp = compl_temp / m
+            compl_vec = np.concat((y_temp * z1_temp, w1_temp * z2_temp, w2_temp * z3_temp,
+                                    gam_temp * z4_temp, lam_temp * z5_temp))
+
             is_neighbor = True
 
-            # This is the "Large neighborhood" approach (every component of the compl.
-            # is not too small.)
             if neighborhood == "Large":
-                for (yi, z1i) in zip(y_temp, z1_temp):
-                    if yi * z1i < gamma * compl_temp / m:
+                for comp in compl_vec:
+                    if comp < gamma * mu_temp:
                         alpha_hat *= alpha_hat_dec
                         is_neighbor = False
                         break
 
-                if is_neighbor:
-                    for (w1i, z2i) in zip(w1_temp, z2_temp):
-                        if w1i * z2i < gamma * compl_temp / m:
-                            alpha_hat *= alpha_hat_dec
-                            is_neighbor = False
-                            break
-
-                if is_neighbor:
-                    for (w2i, z3i) in zip(w2_temp, z3_temp):
-                        if w2i * z3i < gamma * compl_temp / m:
-                            alpha_hat *= alpha_hat_dec
-                            is_neighbor = False
-                            break
-
-                if is_neighbor:
-                    for (gami, z4i) in zip(gam_temp, z4_temp):
-                        if gami * z4i < gamma * compl_temp / m:
-                            alpha_hat *= alpha_hat_dec
-                            is_neighbor = False
-                            break
-
-                if is_neighbor:
-                    for (lami, z5i) in zip(lam_temp, z5_temp):
-                        if lami * z5i < gamma * compl_temp / m:
-                            alpha_hat *= alpha_hat_dec
-                            is_neighbor = False
-                            break
-            
-            # Neighborhood is "small"
+            # Neighborhood is small
             else:
-                pass
+                # print(np.linalg.norm((compl_vec / mu_temp) - np.ones(m)))
+                if np.linalg.norm((compl_vec / mu_temp) - np.ones(m)) > gamma:
+                    alpha_hat *= alpha_hat_dec
+                    is_neighbor = False
 
             if not is_neighbor:
                 continue
@@ -234,7 +212,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
                 continue
 
             Gx_temp = np.dot(G, x_temp)
-            epsilon_dual = np.linalg.norm(np.concatenate((
+            epsilon_dual = np.linalg.norm(np.concat((
                 np.dot(A, x_temp) + z1_temp - b,
                 Gx_temp + z2_temp - h,
                 -Gx_temp + z3_temp + h,
@@ -259,7 +237,7 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
         z4 = z4_temp
         z5 = z5_temp
 
-        if max(abs(entry) for entry in np.concatenate(
+        if max(abs(entry) for entry in np.concat(
             (x, y, w1, w2, gam, lam, z1, z2, z3, z4, z5)
         )) > 2 * m * omega:
             print("The problem is infeasible.")
@@ -283,37 +261,40 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
 
         Gx = np.dot(G, x)
 
-        print(f"Iteration {iteration}:")
-        print(f"{'Primal objective:':20}{np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam):<15.8e}")
-        print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
-        print()
-        print(f"{'Primal residual:':20}{np.linalg.norm(
-            np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
-        ):<8.2e}")
-        print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((
-                np.dot(A, x) + z1 - b,
-                Gx + z2 - h,
-                -Gx + z3 + h,
-                x + z4 - u,
-                -x + z5
-            ))):<8.2e}")
-        print(f"{'Complementarity:':20}{compl:<8.2e}")
-        print()
+        if verbose:
+            print(f"Iteration {iteration}:")
+            print(f"{'Primal objective:':20}{np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam):<15.8e}")
+            print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
+            print()
+            print(f"{'Primal residual:':20}{np.linalg.norm(
+                np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
+            ):<8.2e}")
+            print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
+                    np.dot(A, x) + z1 - b,
+                    Gx + z2 - h,
+                    -Gx + z3 + h,
+                    x + z4 - u,
+                    -x + z5
+                ))):<8.2e}")
+            print(f"{'Complementarity:':20}{compl:<8.2e}")
+            print()
 
         if alpha_hat < step_precision:
             print("The solution quality is limited by the precision of the linear system solver.")
             break
 
     run_time = time.time() - start_time
+    primal_obj = np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam)
+    dual_obj = np.dot(-c, x)  # pylint: disable=invalid-unary-operand-type
     print(f"The algorithm stopped after {iteration:d} iterations in {run_time:.2f} seconds.")
     print()
-    print(f"{'Primal objective:':20}{np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam):<15.8e}")
-    print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
+    print(f"{'Primal objective:':20}{primal_obj:<15.8e}")
+    print(f"{'Dual objective:':20}{dual_obj:<15.8e}")
     print()
     print(f"{'Primal residual:':20}{np.linalg.norm(
         np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
     ):<8.2e}")
-    print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((
+    print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
             np.dot(A, x) + z1 - b,
             Gx + z2 - h,
             -Gx + z3 + h,
@@ -322,7 +303,9 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
         ))):<8.2e}")
     print(f"{'Complementarity:':20}{compl:<8.2e}")
     print()
-    print(x)
+    if verbose:
+        print(x)
+    return -dual_obj, run_time, x, compl
 
 if __name__ == "__main__":
-    ipm_solve()
+    ipm_solve(verbose=True)

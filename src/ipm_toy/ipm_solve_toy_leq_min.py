@@ -133,7 +133,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         s = s_temp
         z = z_temp
 
-        if max(abs(entry) for entry in np.concatenate((x, y, s, z))) > 2 * m * omega:
+        if max(abs(entry) for entry in np.concat((x, y, s, z))) > 2 * m * omega:
             print("The problem is infeasible.")
             break
 

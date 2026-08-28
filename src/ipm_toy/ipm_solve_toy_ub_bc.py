@@ -145,7 +145,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
                 is_neighbor = False
                 continue
 
-            epsilon_dual = np.linalg.norm(np.concatenate((
+            epsilon_dual = np.linalg.norm(np.concat((
                 np.dot(A, x_temp) + z1_temp - b,
                 x_temp + z4_temp - u
             )))
@@ -162,7 +162,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         z1 = z1_temp
         z4 = z4_temp
 
-        if max(abs(entry) for entry in np.concatenate(
+        if max(abs(entry) for entry in np.concat(
             (x, y, gam, lam, z1, z4)
         )) > 2 * m * omega:
             print("The problem is infeasible.")
@@ -183,7 +183,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         print(f"{'Primal residual:':20}{np.linalg.norm(
             np.dot(A.T, y) + gam - lam + c
         ):<8.2e}")
-        print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((
+        print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
                 np.dot(A, x) + z1 - b,
                 x + z4 - u
             ))):<8.2e}")
@@ -203,7 +203,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
     print(f"{'Primal residual:':20}{np.linalg.norm(
         np.dot(A.T, y) + gam - lam + c
     ):<8.2e}")
-    print(f"{'Dual residual:':20}{np.linalg.norm(np.concatenate((
+    print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
             np.dot(A, x) + z1 - b,
             x + z4 - u
         ))):<8.2e}")
