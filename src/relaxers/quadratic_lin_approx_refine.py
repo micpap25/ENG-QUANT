@@ -14,7 +14,7 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 # Linear approximation of a convex QCP
 # The quadratic term for each inequality is a single variable squared (plus linear terms and constants)
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
-def quadratic_model_lin_approx_refine(eps: int, outer_approximation: bool,
+def quadratic_model_lin_approx_refine(k: int, outer_approximation: bool,
                                         points_function: list[Callable[[float, float, int], FloatArray]],
                                         coefficient_surrogate: bool, surrogate_bound_below: bool,
                                         surrogate_bound_above: bool, remove_division: bool = False,
@@ -92,10 +92,10 @@ def quadratic_model_lin_approx_refine(eps: int, outer_approximation: bool,
             if outer_approximation:
                 # Tangent line at each point
                 if endpoints:
-                    points = points_function[quad_var_count](lower, upper, eps)
+                    points = points_function[quad_var_count](lower, upper, k)
                 else:
-                    points = points_function[quad_var_count](lower, upper, eps + 2)[1:-1]
-                for i in range(eps):
+                    points = points_function[quad_var_count](lower, upper, k + 2)[1:-1]
+                for i in range(k):
                     point = points[i]
                     fun_point = point**2
                     if coefficient_surrogate:
@@ -115,10 +115,10 @@ def quadratic_model_lin_approx_refine(eps: int, outer_approximation: bool,
             else:
                 # Secant line between each two points
                 if endpoints:
-                    points = points_function[quad_var_count](lower, upper, eps + 1)
+                    points = points_function[quad_var_count](lower, upper, k + 1)
                 else:
-                    points = points_function[quad_var_count](lower, upper, eps + 3)[1:-1]
-                for i in range(eps):
+                    points = points_function[quad_var_count](lower, upper, k + 3)[1:-1]
+                for i in range(k):
                     point_1 = points[i]
                     point_2 = points[i+1]
                     lambd = point_2 - point_1

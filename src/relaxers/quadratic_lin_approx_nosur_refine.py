@@ -9,7 +9,7 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 
 # Linear approximation of a convex QCP, but with no surrogate variable
 # Number of quadratic variables and a points distribution function for each are passed in.
-def quadratic_lin_approx_no_surrogate_refine(eps: int, outer_approximation: bool,
+def quadratic_lin_approx_no_surrogate_refine(k: int, outer_approximation: bool,
                                                 points_function: list[Callable[[float, float, int], FloatArray]],
                                                 remove_division: bool = False,
                                                 endpoints: bool = True,
@@ -61,12 +61,12 @@ def quadratic_lin_approx_no_surrogate_refine(eps: int, outer_approximation: bool
             if outer_approximation:
                 # Tangent line at each point
                 if endpoints:
-                    points = points_function[quad_var_count](lower, upper, eps)
+                    points = points_function[quad_var_count](lower, upper, k)
                 else:
-                    points = points_function[quad_var_count](lower, upper, eps + 2)[1:-1]
+                    points = points_function[quad_var_count](lower, upper, k + 2)[1:-1]
                 if verbose:
                     print(f"Approximation points for quadratic variable {quadratic_variable}:\n{points}")
-                for i in range(eps):
+                for i in range(k):
                     point = points[i]
                     fun_point = quadratic_coef * point**2
 
@@ -81,12 +81,12 @@ def quadratic_lin_approx_no_surrogate_refine(eps: int, outer_approximation: bool
             else:
                 # Secant line between each two points
                 if endpoints:
-                    points = points_function[quad_var_count](lower, upper, eps + 1)
+                    points = points_function[quad_var_count](lower, upper, k + 1)
                 else:
-                    points = points_function[quad_var_count](lower, upper, eps + 3)[1:-1]
+                    points = points_function[quad_var_count](lower, upper, k + 3)[1:-1]
                 if verbose:
                     print(points)
-                for i in range(eps):
+                for i in range(k):
                     point_1 = points[i]
                     point_2 = points[i+1]
                     lambd = point_2 - point_1

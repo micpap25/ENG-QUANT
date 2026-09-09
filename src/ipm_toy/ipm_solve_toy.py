@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from ipm.problem_to_matrices import problem_to_matrices
 from ipm_new.problem_to_eq_ineq_matrices import problem_to_eq_ineq_matrices
 import numpy as np
 import time
@@ -14,10 +13,34 @@ def ratio(x_vec, delta_x_vec):
             rat = min(- x / delta_x , rat)
     return rat
 
-def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2,
-                gamma: float = 0.5, precision: float = 1e-7,
+
+def ruiz_solve(matrix, vector, iterations=8, verbose=False):
+    """Solve a linear system after symmetric Ruiz equilibration."""
+    scaled_matrix = np.asarray(matrix, dtype=float).copy()
+    scaled_vector = np.asarray(vector, dtype=float).copy()
+    scaling = np.ones(scaled_matrix.shape[0])
+
+    for _ in range(iterations):
+        # M is symmetric; scaling by the row infinity norms is therefore
+        # equivalent to using the corresponding column norms as well.
+        norms = np.max(np.abs(scaled_matrix), axis=1)
+        norms = np.maximum(norms, np.finfo(float).tiny)
+        step_scaling = 1.0 / np.sqrt(norms)
+        scaled_matrix = step_scaling[:, None] * scaled_matrix * step_scaling[None, :]
+        scaled_vector *= step_scaling
+        scaling *= step_scaling
+
+    # scaled_matrix y = scaled_vector, with x = D y.
+    if verbose:
+        print(f"Condition number after pre-conditioning: {np.linalg.cond(scaled_matrix)}")
+    return scaling * np.linalg.solve(scaled_matrix, scaled_vector)
+
+def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
+                beta2: float = 1 - 5e-4, omega: float = 1e4,
+                gamma: float = 0.5, precision: float = 1e-8,
                 alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
-                neighborhood: str = "Large") -> None:
+                neighborhood: str = "Large", tau: float = 1e-8,
+                verbose: bool = False):
     np.set_printoptions(linewidth=200)
 
     # Dual solution is (0, 4, 0), obj = 8
@@ -31,8 +54,16 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
 
     i = len(b)
     e = len(h)
-    n = len(c)  # Number of variables
+    n = len(c) # Number of variables
     m = i + 2*e + 2*n  # Number of constraints
+
+    # A naive bound on omega
+    max_cost = np.dot(np.clip(c, 0, None), u)
+    omega = min(max_cost, omega)
+    if verbose:
+        print(max_cost)
+        if omega == max_cost:
+            print("omega was limited by the max cost")
 
     # problem-to-eq-ineq-matrix sanity check
     assert len(A) == i
@@ -93,7 +124,10 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
             - c - ATy - GTw1_w2 - gam + lam
 
         # Linear System Solve
-        delta_x = np.linalg.solve(M, r)
+        if verbose:
+            print(f"Condition number before pre-conditioning: {np.linalg.cond(M)}")
+        # delta_x = np.linalg.solve(M, r)
+        delta_x = ruiz_solve(M, r, verbose=verbose)
 
         # Recover the steps
         Adelta_x = np.dot(A, delta_x)
@@ -147,7 +181,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
             compl_temp = np.dot(y_temp, z1_temp) + np.dot(w1_temp, z2_temp) \
                 + np.dot(w2_temp, z3_temp) + np.dot(gam_temp, z4_temp) + np.dot(lam_temp, z5_temp)
             mu_temp = compl_temp / m
-            compl_vec = np.concat((y_temp * z1_temp, w1_temp* z2_temp, w2_temp * z3_temp,
+            compl_vec = np.concat((y_temp * z1_temp, w1_temp * z2_temp, w2_temp * z3_temp,
                                     gam_temp * z4_temp, lam_temp * z5_temp))
 
             is_neighbor = True
@@ -161,7 +195,7 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
 
             # Neighborhood is small
             else:
-                print(np.linalg.norm((compl_vec / mu_temp) - np.ones(m)))
+                # print(np.linalg.norm((compl_vec / mu_temp) - np.ones(m)))
                 if np.linalg.norm((compl_vec / mu_temp) - np.ones(m)) > gamma:
                     alpha_hat *= alpha_hat_dec
                     is_neighbor = False
@@ -210,18 +244,22 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         z4 = z4_temp
         z5 = z5_temp
 
+        # Adjust the w variables
+        d = np.maximum(0, np.minimum(w1, w2) - tau)
+        zeta = min(1, np.min((w1 * z2 - (gamma * mu_temp)) / (d * z2)),
+                np.min((w2 * z3 - (gamma * mu_temp)) / (d * z3)))
+
+        if zeta < 1:
+            zeta *= alpha_hat_dec
+
+        w1 -= zeta * d
+        w2 -= zeta * d
+
         if max(abs(entry) for entry in np.concat(
             (x, y, w1, w2, gam, lam, z1, z2, z3, z4, z5)
         )) > 2 * m * omega:
             print("The problem is infeasible.")
             break
-
-        # # Adjust the w variables
-        # min_w = min(np.min(w1), np.min(w2))
-        # if min_w > 1:
-        #     min_w_dif = min_w - 1
-        #     w1 -= min_w_dif
-        #     w2 -= min_w_dif
 
         iteration += 1
 
@@ -234,32 +272,35 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
 
         Gx = np.dot(G, x)
 
-        print(f"Iteration {iteration}:")
-        print(f"{'Primal objective:':20}{np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam):<15.8e}")
-        print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
-        print()
-        print(f"{'Primal residual:':20}{np.linalg.norm(
-            np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
-        ):<8.2e}")
-        print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
-                np.dot(A, x) + z1 - b,
-                Gx + z2 - h,
-                -Gx + z3 + h,
-                x + z4 - u,
-                -x + z5
-            ))):<8.2e}")
-        print(f"{'Complementarity:':20}{compl:<8.2e}")
-        print()
+        if verbose:
+            print(f"Iteration {iteration}:")
+            print(f"{'Primal objective:':20}{np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam):<15.8e}")
+            print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
+            print()
+            print(f"{'Primal residual:':20}{np.linalg.norm(
+                np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
+            ):<8.2e}")
+            print(f"{'Dual residual:':20}{np.linalg.norm(np.concat((
+                    np.dot(A, x) + z1 - b,
+                    Gx + z2 - h,
+                    -Gx + z3 + h,
+                    x + z4 - u,
+                    -x + z5
+                ))):<8.2e}")
+            print(f"{'Complementarity:':20}{compl:<8.2e}")
+            print()
 
         if alpha_hat < step_precision:
             print("The solution quality is limited by the precision of the linear system solver.")
             break
 
     run_time = time.time() - start_time
+    primal_obj = np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam)
+    dual_obj = np.dot(-c, x)  # pylint: disable=invalid-unary-operand-type
     print(f"The algorithm stopped after {iteration:d} iterations in {run_time:.2f} seconds.")
     print()
-    print(f"{'Primal objective:':20}{np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, gam):<15.8e}")
-    print(f"{'Dual objective:':20}{np.dot(-c, x):<15.8e}")
+    print(f"{'Primal objective:':20}{primal_obj:<15.8e}")
+    print(f"{'Dual objective:':20}{dual_obj:<15.8e}")
     print()
     print(f"{'Primal residual:':20}{np.linalg.norm(
         np.dot(A.T, y) + np.dot(G.T, w1 - w2) + gam - lam + c
@@ -273,7 +314,9 @@ def ipm_solve_toy(beta: float = 0.1, beta2: float = 1 - 5e-4, omega: float = 1e2
         ))):<8.2e}")
     print(f"{'Complementarity:':20}{compl:<8.2e}")
     print()
-    print(x)
+    if verbose:
+        print(x)
+    return -dual_obj, run_time, x, compl
 
 if __name__ == "__main__":
-    ipm_solve_toy()
+    ipm_solve(verbose=True)

@@ -14,7 +14,7 @@ type FloatArray = Sequence[float] | NDArray[np.float64]
 # Linear approximation of a convex QCP
 # The quadratic term for each inequality is a single variable squared (plus linear terms and constants)
 # Can use either tangent lines (outer approx) or secant lines (inner approx)
-def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
+def quadratic_model_lin_approx(k: int, outer_approximation: bool,
                                 coefficient_surrogate: bool, surrogate_bound_below: bool,
                                 surrogate_bound_above: bool, remove_division: bool = False,
                                 points_function: Callable[[float, float, int], FloatArray] = np.linspace,
@@ -90,10 +90,10 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
             if outer_approximation:
                 # Tangent line at each point
                 if endpoints:
-                    points = points_function(lower, upper, eps)
+                    points = points_function(lower, upper, k)
                 else:
-                    points = points_function(lower, upper, eps + 2)[1:-1]
-                for i in range(eps):
+                    points = points_function(lower, upper, k + 2)[1:-1]
+                for i in range(k):
                     point = points[i]
                     fun_point = point**2
                     if coefficient_surrogate:
@@ -113,10 +113,10 @@ def quadratic_model_lin_approx(eps: int, outer_approximation: bool,
             else:
                 # Secant line between each two points
                 if endpoints:
-                    points = points_function(lower, upper, eps + 1)
+                    points = points_function(lower, upper, k + 1)
                 else:
-                    points = points_function(lower, upper, eps + 3)[1:-1]
-                for i in range(eps):
+                    points = points_function(lower, upper, k + 3)[1:-1]
+                for i in range(k):
                     point_1 = points[i]
                     point_2 = points[i+1]
                     lambd = point_2 - point_1
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         return np.linspace(lower, lower + ((upper - lower)/concat), num)
 
     # The number of linear constraints to use per quadratic constraint
-    EPS = 10
+    K = 10
 
     # Whether to do an inner or outer approximation
     OUTER_APPROXIMATION = True
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     # File to import the quadratic model from
     F_NAME = "model11_quad_reform_2.json"
 
-    # quadratic_model_lin_approx(EPS, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE,
+    # quadratic_model_lin_approx(K, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE,
     #                             SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, points_function=np_uniform_bunch_low, f_name=F_NAME, verbose=True)
-    quadratic_model_lin_approx(EPS, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE, 
+    quadratic_model_lin_approx(K, OUTER_APPROXIMATION, COEFFICIENT_SURROGATE, 
                                 SURROGATE_BOUND_BELOW, SURROGATE_BOUND_ABOVE, f_name=F_NAME, verbose=True)

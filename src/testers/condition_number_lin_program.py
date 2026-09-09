@@ -77,21 +77,21 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
 
     if verbose:
         print(f"G =\n{G}")
-        print(f"cond(G) = {np.linalg.cond(G)}")
-        print(f"2G^TG = \n{np.multiply(2, np.matmul(np.transpose(G), G))}")
-        print(f"cond(2G^TG) = {np.linalg.cond(np.multiply(2, np.matmul(np.transpose(G), G)))}")
+        # print(f"cond(G) = {np.linalg.cond(G)}")
+        # print(f"2G^TG = \n{np.multiply(2, np.matmul(np.transpose(G), G))}")
+        # print(f"cond(2G^TG) = {np.linalg.cond(np.multiply(2, np.matmul(np.transpose(G), G)))}")
         print(f"A =\n{A}")
-        if len(A) > 0:
-            print(f"cond(A) = {np.linalg.cond(A)}")
-            print(f"cond(A^TA) = {np.linalg.cond(np.matmul(np.transpose(A), A))}")
-        print(f"frr A = {np.linalg.matrix_rank(G) == G.shape[0]}")
+        # if len(A) > 0:
+        #     print(f"cond(A) = {np.linalg.cond(A)}")
+            # print(f"cond(A^TA) = {np.linalg.cond(np.matmul(np.transpose(A), A))}")
+        # print(f"frr A = {np.linalg.matrix_rank(G) == G.shape[0]}")
 
     final_matrix = np.multiply(2, np.matmul(np.transpose(G), G)) \
                     + np.matmul(np.transpose(A), A) \
                     + np.multiply(bounds, np.identity(n_variables))
 
     if verbose:
-        print(final_matrix)
+        print(f"M = \n{final_matrix}")
         # Sparsity of final matrix
         non_zero_count = np.count_nonzero(final_matrix)
         sparsity = 1.0 - (non_zero_count / final_matrix.size)
@@ -100,6 +100,7 @@ def condition_number_nes_basic(bounds: int = 2, f_name: str = "linear_approx.jso
         print(plt.spy(final_matrix))
         # print(plt.spy(np.matmul(np.transpose(A), A)))
         # print(plt.spy(np.matmul(np.transpose(G), G)))
+        # print(f"This should be two: {np.min(np.linalg.eigvals(final_matrix))}")
 
     return np.linalg.cond(final_matrix)
 

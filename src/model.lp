@@ -1,6 +1,6 @@
 \ Model lp_from_json
 \ LP format - for model browsing. Use MPS format to capture full model detail.
-\ Signature: 0x8b9c77c1ecfb63c2
+\ Signature: 0xb5ec5d011ad08703
 Minimize
   psi[N01] + psi[N02] - 2 psi[N04] + 2 psi[N05] + psi[entry01]
    + psi[entry02] - psi[entry03] - psi[exit01] - psi[exit02] - psi[exit03]
@@ -25,471 +25,246 @@ Subject To
    - 1.623649754656013 psi[N04] + psi[N05] = 997.8396074496209
  sum_production_flows_upper[entry01]: phi[pipe01_entry01_entry03] <= 750
  sum_production_flows_lower[entry01]: phi[pipe01_entry01_entry03] >= 50
- phi[pipe01_entry01_entry03]_outer_lin_approx_0: - psi[entry01]
-   + psi[entry03] <= 0
+ phi[pipe01_entry01_entry03]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 236.5680220450806
  phi[pipe01_entry01_entry03]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 79.29288273533166
+   9.462720881803223 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 946.2720881803225
  phi[pipe01_entry01_entry03]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 317.1715309413269
+   14.19408132270483 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 2129.112198405725
  phi[pipe01_entry01_entry03]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 713.6359446179854
+   18.92544176360645 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 3785.088352721289
  phi[pipe01_entry01_entry03]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 1268.686123765307
+   23.65680220450806 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 5914.200551127014
  phi[pipe01_entry01_entry03]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 1982.322068383292
+   28.38816264540967 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 8516.4487936229
  phi[pipe01_entry01_entry03]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 2854.543778471942
+   33.11952308631128 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 11591.83308020895
  phi[pipe01_entry01_entry03]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 3885.351254031253
+   37.85088352721289 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 15140.35341088516
  phi[pipe01_entry01_entry03]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 5074.744495061229
+   42.5822439681145 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 19162.00978565153
  phi[pipe01_entry01_entry03]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 6422.723501561867
- phi[pipe01_entry01_entry03]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 7929.28827353317
- phi[pipe01_entry01_entry03]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 9594.438810975138
- phi[pipe01_entry01_entry03]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 11418.17511388777
- phi[pipe01_entry01_entry03]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 13400.49718227106
- phi[pipe01_entry01_entry03]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 15541.40501612501
- phi[pipe01_entry01_entry03]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 17840.89861544964
- phi[pipe01_entry01_entry03]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 20298.97798024492
- phi[pipe01_entry01_entry03]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 22915.64311051086
- phi[pipe01_entry01_entry03]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 25690.89400624747
- phi[pipe01_entry01_entry03]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe01_entry01_entry03] - psi[entry01]
-   + psi[entry03] <= 28624.73066745475
- phi[pipe02_N01_N02]_outer_lin_approx_0: - psi[N01] + psi[N02] <= 0
+   47.31360440901611 phi[pipe01_entry01_entry03] - psi[entry01]
+   + psi[entry03] <= 23656.80220450806
+ phi[pipe02_N01_N02]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 236.5680220450806
  phi[pipe02_N01_N02]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 946.2720881803225
  phi[pipe02_N01_N02]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 2129.112198405725
  phi[pipe02_N01_N02]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 3785.088352721289
  phi[pipe02_N01_N02]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 5914.200551127014
  phi[pipe02_N01_N02]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 1982.322068383292
+   28.38816264540967 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 8516.4487936229
  phi[pipe02_N01_N02]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 11591.83308020895
  phi[pipe02_N01_N02]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 3885.351254031253
+   37.85088352721289 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 15140.35341088516
  phi[pipe02_N01_N02]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 19162.00978565153
  phi[pipe02_N01_N02]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 6422.723501561867
- phi[pipe02_N01_N02]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 7929.28827353317
- phi[pipe02_N01_N02]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 9594.438810975138
- phi[pipe02_N01_N02]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 11418.17511388777
- phi[pipe02_N01_N02]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 13400.49718227106
- phi[pipe02_N01_N02]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 15541.40501612501
- phi[pipe02_N01_N02]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 17840.89861544964
- phi[pipe02_N01_N02]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 20298.97798024492
- phi[pipe02_N01_N02]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 22915.64311051086
- phi[pipe02_N01_N02]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 25690.89400624747
- phi[pipe02_N01_N02]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
-   <= 28624.73066745475
- phi[pipe03_entry02_N03]_outer_lin_approx_0: psi[N01] - psi[entry02] <= 0
+   47.31360440901611 phi[pipe02_N01_N02] - psi[N01] + psi[N02]
+   <= 23656.80220450806
+ phi[pipe03_entry02_N03]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 236.5680220450806
  phi[pipe03_entry02_N03]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 946.2720881803223
  phi[pipe03_entry02_N03]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 2129.112198405725
  phi[pipe03_entry02_N03]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 3785.088352721289
  phi[pipe03_entry02_N03]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 5914.200551127014
  phi[pipe03_entry02_N03]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 1982.322068383293
+   28.38816264540967 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 8516.4487936229
  phi[pipe03_entry02_N03]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 11591.83308020895
  phi[pipe03_entry02_N03]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 3885.351254031254
+   37.85088352721289 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 15140.35341088516
  phi[pipe03_entry02_N03]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 19162.00978565153
  phi[pipe03_entry02_N03]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 6422.723501561867
- phi[pipe03_entry02_N03]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 7929.28827353317
- phi[pipe03_entry02_N03]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 9594.438810975138
- phi[pipe03_entry02_N03]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 11418.17511388777
- phi[pipe03_entry02_N03]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 13400.49718227106
- phi[pipe03_entry02_N03]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 15541.40501612501
- phi[pipe03_entry02_N03]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 17840.89861544964
- phi[pipe03_entry02_N03]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 20298.97798024492
- phi[pipe03_entry02_N03]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 22915.64311051086
- phi[pipe03_entry02_N03]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 25690.89400624747
- phi[pipe03_entry02_N03]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
-   <= 28624.73066745475
- phi[pipe04_N02_exit01]_outer_lin_approx_0: - psi[N02] + psi[exit01] <= 0
+   47.31360440901611 phi[pipe03_entry02_N03] + psi[N01] - psi[entry02]
+   <= 23656.80220450806
+ phi[pipe04_N02_exit01]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 236.5680220450806
  phi[pipe04_N02_exit01]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 946.2720881803225
  phi[pipe04_N02_exit01]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 2129.112198405725
  phi[pipe04_N02_exit01]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 3785.088352721289
  phi[pipe04_N02_exit01]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 5914.200551127014
  phi[pipe04_N02_exit01]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 1982.322068383292
+   28.38816264540967 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 8516.4487936229
  phi[pipe04_N02_exit01]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 11591.83308020895
  phi[pipe04_N02_exit01]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 3885.351254031253
+   37.85088352721289 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 15140.35341088516
  phi[pipe04_N02_exit01]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 19162.00978565153
  phi[pipe04_N02_exit01]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 6422.723501561867
- phi[pipe04_N02_exit01]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 7929.28827353317
- phi[pipe04_N02_exit01]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 9594.438810975138
- phi[pipe04_N02_exit01]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 11418.17511388777
- phi[pipe04_N02_exit01]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 13400.49718227106
- phi[pipe04_N02_exit01]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 15541.40501612501
- phi[pipe04_N02_exit01]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 17840.89861544964
- phi[pipe04_N02_exit01]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 20298.97798024492
- phi[pipe04_N02_exit01]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 22915.64311051086
- phi[pipe04_N02_exit01]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 25690.89400624747
- phi[pipe04_N02_exit01]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
-   <= 28624.73066745475
- phi[pipe05_N02_N04]_outer_lin_approx_0: - psi[N02] + psi[N04] <= 0
+   47.31360440901611 phi[pipe04_N02_exit01] - psi[N02] + psi[exit01]
+   <= 23656.80220450806
+ phi[pipe05_N02_N04]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 236.5680220450806
  phi[pipe05_N02_N04]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 946.2720881803225
  phi[pipe05_N02_N04]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 2129.112198405725
  phi[pipe05_N02_N04]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 3785.088352721289
  phi[pipe05_N02_N04]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 5914.200551127014
  phi[pipe05_N02_N04]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 1982.322068383292
+   28.38816264540967 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 8516.4487936229
  phi[pipe05_N02_N04]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 11591.83308020895
  phi[pipe05_N02_N04]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 3885.351254031253
+   37.85088352721289 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 15140.35341088516
  phi[pipe05_N02_N04]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 19162.00978565153
  phi[pipe05_N02_N04]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 6422.723501561867
- phi[pipe05_N02_N04]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 7929.28827353317
- phi[pipe05_N02_N04]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 9594.438810975138
- phi[pipe05_N02_N04]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 11418.17511388777
- phi[pipe05_N02_N04]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 13400.49718227106
- phi[pipe05_N02_N04]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 15541.40501612501
- phi[pipe05_N02_N04]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 17840.89861544964
- phi[pipe05_N02_N04]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 20298.97798024492
- phi[pipe05_N02_N04]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 22915.64311051086
- phi[pipe05_N02_N04]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 25690.89400624747
- phi[pipe05_N02_N04]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
-   <= 28624.73066745475
- phi[pipe06_N03_N04]_outer_lin_approx_0: - psi[N01] + psi[N04] <= 0
+   47.31360440901611 phi[pipe05_N02_N04] - psi[N02] + psi[N04]
+   <= 23656.80220450806
+ phi[pipe06_N03_N04]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 236.5680220450806
  phi[pipe06_N03_N04]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 946.2720881803225
  phi[pipe06_N03_N04]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 2129.112198405725
  phi[pipe06_N03_N04]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 3785.088352721289
  phi[pipe06_N03_N04]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 5914.200551127014
  phi[pipe06_N03_N04]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 1982.322068383292
+   28.38816264540967 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 8516.4487936229
  phi[pipe06_N03_N04]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 11591.83308020895
  phi[pipe06_N03_N04]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 3885.351254031253
+   37.85088352721289 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 15140.35341088516
  phi[pipe06_N03_N04]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 19162.00978565153
  phi[pipe06_N03_N04]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 6422.723501561867
- phi[pipe06_N03_N04]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 7929.28827353317
- phi[pipe06_N03_N04]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 9594.438810975138
- phi[pipe06_N03_N04]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 11418.17511388777
- phi[pipe06_N03_N04]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 13400.49718227106
- phi[pipe06_N03_N04]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 15541.40501612501
- phi[pipe06_N03_N04]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 17840.89861544964
- phi[pipe06_N03_N04]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 20298.97798024492
- phi[pipe06_N03_N04]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 22915.64311051086
- phi[pipe06_N03_N04]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 25690.89400624747
- phi[pipe06_N03_N04]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
-   <= 28624.73066745475
- phi[pipe07_N05_exit02]_outer_lin_approx_0: - psi[N05] + psi[exit02] <= 0
+   47.31360440901611 phi[pipe06_N03_N04] - psi[N01] + psi[N04]
+   <= 23656.80220450806
+ phi[pipe07_N05_exit02]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 236.5680220450806
  phi[pipe07_N05_exit02]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 946.2720881803225
  phi[pipe07_N05_exit02]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 2129.112198405725
  phi[pipe07_N05_exit02]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 3785.088352721289
  phi[pipe07_N05_exit02]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 5914.200551127014
  phi[pipe07_N05_exit02]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 1982.322068383292
+   28.38816264540967 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 8516.4487936229
  phi[pipe07_N05_exit02]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 11591.83308020895
  phi[pipe07_N05_exit02]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 3885.351254031253
+   37.85088352721289 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 15140.35341088516
  phi[pipe07_N05_exit02]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 19162.00978565153
  phi[pipe07_N05_exit02]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 6422.723501561867
- phi[pipe07_N05_exit02]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 7929.28827353317
- phi[pipe07_N05_exit02]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 9594.438810975138
- phi[pipe07_N05_exit02]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 11418.17511388777
- phi[pipe07_N05_exit02]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 13400.49718227106
- phi[pipe07_N05_exit02]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 15541.40501612501
- phi[pipe07_N05_exit02]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 17840.89861544964
- phi[pipe07_N05_exit02]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 20298.97798024492
- phi[pipe07_N05_exit02]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 22915.64311051086
- phi[pipe07_N05_exit02]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 25690.89400624747
- phi[pipe07_N05_exit02]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
-   <= 28624.73066745475
- phi[pipe08_N05_exit03]_outer_lin_approx_0: - psi[N05] + psi[exit03] <= 0
+   47.31360440901611 phi[pipe07_N05_exit02] - psi[N05] + psi[exit02]
+   <= 23656.80220450806
+ phi[pipe08_N05_exit03]_outer_lin_approx_0:
+   4.731360440901612 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 236.5680220450806
  phi[pipe08_N05_exit03]_outer_lin_approx_1:
-   2.739208676311459 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 79.29288273533166
+   9.462720881803223 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 946.2720881803225
  phi[pipe08_N05_exit03]_outer_lin_approx_2:
-   5.478417352622918 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 317.1715309413269
+   14.19408132270483 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 2129.112198405725
  phi[pipe08_N05_exit03]_outer_lin_approx_3:
-   8.217626028934378 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 713.6359446179854
+   18.92544176360645 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 3785.088352721289
  phi[pipe08_N05_exit03]_outer_lin_approx_4:
-   10.95683470524584 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 1268.686123765307
+   23.65680220450806 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 5914.200551127014
  phi[pipe08_N05_exit03]_outer_lin_approx_5:
-   13.6960433815573 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 1982.322068383292
+   28.38816264540967 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 8516.4487936229
  phi[pipe08_N05_exit03]_outer_lin_approx_6:
-   16.43525205786876 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 2854.543778471942
+   33.11952308631128 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 11591.83308020895
  phi[pipe08_N05_exit03]_outer_lin_approx_7:
-   19.17446073418022 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 3885.351254031253
+   37.85088352721289 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 15140.35341088516
  phi[pipe08_N05_exit03]_outer_lin_approx_8:
-   21.91366941049167 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 5074.744495061229
+   42.5822439681145 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 19162.00978565153
  phi[pipe08_N05_exit03]_outer_lin_approx_9:
-   24.65287808680313 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 6422.723501561867
- phi[pipe08_N05_exit03]_outer_lin_approx_10:
-   27.39208676311459 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 7929.28827353317
- phi[pipe08_N05_exit03]_outer_lin_approx_11:
-   30.13129543942605 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 9594.438810975138
- phi[pipe08_N05_exit03]_outer_lin_approx_12:
-   32.87050411573751 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 11418.17511388777
- phi[pipe08_N05_exit03]_outer_lin_approx_13:
-   35.60971279204897 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 13400.49718227106
- phi[pipe08_N05_exit03]_outer_lin_approx_14:
-   38.34892146836043 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 15541.40501612501
- phi[pipe08_N05_exit03]_outer_lin_approx_15:
-   41.08813014467189 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 17840.89861544964
- phi[pipe08_N05_exit03]_outer_lin_approx_16:
-   43.82733882098334 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 20298.97798024492
- phi[pipe08_N05_exit03]_outer_lin_approx_17:
-   46.56654749729481 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 22915.64311051086
- phi[pipe08_N05_exit03]_outer_lin_approx_18:
-   49.30575617360626 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 25690.89400624747
- phi[pipe08_N05_exit03]_outer_lin_approx_19:
-   52.04496484991773 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
-   <= 28624.73066745475
+   47.31360440901611 phi[pipe08_N05_exit03] - psi[N05] + psi[exit03]
+   <= 23656.80220450806
 Bounds
  phi[pipe01_entry01_entry03] <= 1100
  phi[pipe02_N01_N02] <= 1100
