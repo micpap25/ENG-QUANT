@@ -1,5 +1,6 @@
 *.json
 *.pdf
+*.lp
 experiments/gurobi-*
 __pycache__/
 MODEL_JSON_FORMAT.md
