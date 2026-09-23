@@ -30,9 +30,8 @@ def toy_problem_to_json(n: int, f_upper_bounds: bool, demand_inequality: bool,
     else:
         uf = None
 
-    # Writing the toy problem in the same format as the JSON in the email
-    # But, formulate the problem as in our Overleaf.
-    # So in this form it is a QCP. We prescribe the flow directions.
+    # Write the toy problem in the repository's JSON schema.
+    # The formulation is a QCP with prescribed flow directions.
 
     data = {}
     data['name'] = "GasNetwork_ToyProblem_N=" + str(n)

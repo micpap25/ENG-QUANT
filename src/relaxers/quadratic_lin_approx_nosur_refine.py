@@ -17,8 +17,10 @@ def quadratic_lin_approx_no_surrogate_refine(k: int, outer_approximation: bool,
                                                 verbose: bool = False) -> None:
 
     if not outer_approximation and remove_division:
-        print("You are setting remove_division to True for a no-surrogate approximation.\n" \
-        "This tends to cause infeasibility or worsen results.")
+        print(
+            "You are setting remove_division to True for a no-surrogate approximation.\n"
+            "This tends to cause infeasibility or worsen results."
+        )
 
     with open(f_name, 'r', encoding='utf-8') as file:
         data = json.load(file)

@@ -3,4 +3,7 @@
 *.lp
 experiments/gurobi-*
 __pycache__/
+.ipynb_checkpoints/
+*.pyc
+*.log
 MODEL_JSON_FORMAT.md
