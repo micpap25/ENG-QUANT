@@ -35,10 +35,10 @@ def ruiz_solve(matrix, vector, iterations=8, verbose=False):
         print(f"Condition number after pre-conditioning: {np.linalg.cond(scaled_matrix)}")
     return scaling * np.linalg.solve(scaled_matrix, scaled_vector)
 
-def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
+def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.01,
                 beta2: float = 1 - 5e-4, omega: float = 1e4,
-                gamma: float = 0.5, precision: float = 1e-8,
-                alpha_hat_dec: float = 1 - 1e-3, step_precision: float = 1e-16,
+                gamma: float = 5e-4, precision: float = 1e-8,
+                alpha_hat_dec: float = .9, step_precision: float = 1e-16,
                 neighborhood: str = "Large", tau: float = 1e-8,
                 verbose: bool = False):
     np.set_printoptions(linewidth=200)

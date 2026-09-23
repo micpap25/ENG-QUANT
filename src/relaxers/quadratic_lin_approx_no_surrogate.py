@@ -135,7 +135,7 @@ if __name__ == "__main__":
     OUTER_APPROXIMATION = True
 
     # File to import the quadratic model from
-    F_NAME = "model11_quad_reform_nofix.json"
+    F_NAME = "toy.json"
 
     quadratic_lin_approx_no_surrogate(K, OUTER_APPROXIMATION, endpoints=False,
                                         f_name=F_NAME, verbose=True)

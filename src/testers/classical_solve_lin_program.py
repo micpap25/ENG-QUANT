@@ -18,6 +18,9 @@ def solve_lp_return_x(f_name: str = "linear_approx.json",
     if not verbose:
         m.Params.OutputFlag = 0
     
+    m.Params.Method = 2
+    m.Params.Crossover = 0
+    m.Params.BarHomogeneous = 1
     # Assign the variable names to Gurobi variables
     var_name_to_gurobi_var = {}
     for var_name, variable in variables.items():
@@ -64,11 +67,11 @@ def solve_lp_return_x(f_name: str = "linear_approx.json",
         else:
             m.addConstr(a >= constraint_data["lower"], constraint_name)
 
-    # Print the presolved problem
-    m.write("model.lp")
-    pre_m = m.presolve()
-    pre_m.printStats()
-    pre_m.write("presolved_model.lp")
+    # # Print the presolved problem
+    # m.write("model.lp")
+    # pre_m = m.presolve()
+    # pre_m.printStats()
+    # pre_m.write("presolved_model.lp")
 
     # solve the problem
     m.optimize()

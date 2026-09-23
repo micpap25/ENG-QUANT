@@ -4,6 +4,7 @@ from ipm_new.problem_to_eq_ineq_matrices import problem_to_eq_ineq_matrices
 import numpy as np
 import time
 
+import scipy.linalg
 import scipy.sparse
 from pymatting.preconditioner.ichol import ichol
 
@@ -16,9 +17,8 @@ def ratio(x_vec, delta_x_vec):
             rat = min(- x / delta_x , rat)
     return rat
 
-
-def ruiz_solve(matrix, vector, iterations, sparse, verbose=False):
-    """Solve a linear system after symmetric Ruiz equilibration."""
+def ruiz_equilibrate(matrix, vector, iterations, sparse, verbose=False):
+    """Return a symmetrically equilibrated system and its diagonal scaling."""
     if sparse:
         scaled_matrix = scipy.sparse.csc_array(matrix, dtype=float, copy=True)
     else:
@@ -26,13 +26,14 @@ def ruiz_solve(matrix, vector, iterations, sparse, verbose=False):
     scaled_vector = np.asarray(vector, dtype=float).copy()
     scaling = np.ones(scaled_matrix.shape[0])
 
-    for _ in range(iterations):
+    for iteration in range(iterations):
         # M is symmetric; scaling by the row infinity norms is therefore
         # equivalent to using the corresponding column norms as well.
         if sparse:
             norms = np.abs(scaled_matrix).max(axis=1).toarray().ravel()
         else:
             norms = np.max(np.abs(scaled_matrix), axis=1)
+        old_matrix_norm = np.max(norms)
         norms = np.maximum(norms, np.finfo(float).tiny)
         step_scaling = 1.0 / np.sqrt(norms)
         if sparse:
@@ -44,6 +45,25 @@ def ruiz_solve(matrix, vector, iterations, sparse, verbose=False):
         scaled_vector *= step_scaling
         scaling *= step_scaling
 
+        # Report the matrix infinity norm before and after this scaling step.
+        if verbose:
+            if sparse:
+                new_norms = np.abs(scaled_matrix).max(axis=1).toarray().ravel()
+            else:
+                new_norms = np.max(np.abs(scaled_matrix), axis=1)
+            print(
+                f"Ruiz iteration {iteration + 1}: "
+                f"matrix norm {old_matrix_norm:.3e} -> {np.max(new_norms):.3e}"
+            )
+
+    return scaled_matrix, scaled_vector, scaling
+
+def ruiz_solve(matrix, vector, iterations, sparse, verbose=False):
+    """Solve a linear system after symmetric Ruiz equilibration."""
+    scaled_matrix, scaled_vector, scaling = ruiz_equilibrate(
+        matrix, vector, iterations, sparse, verbose=verbose
+    )
+
     # scaled_matrix y = scaled_vector, with x = D y.
     if sparse:
         solution = scipy.sparse.linalg.spsolve(scaled_matrix, scaled_vector)
@@ -53,12 +73,44 @@ def ruiz_solve(matrix, vector, iterations, sparse, verbose=False):
         solution = np.linalg.solve(scaled_matrix, scaled_vector)
     return scaling * solution
 
-def solve_system(M, r, sparse, ruiz, ilu, saund_tom, verbose):
-    M_reg = M + saund_tom * scipy.sparse.eye(M.shape[0], format="csc")
+def solve_system(M, r, sparse, ruiz, ilu, saund_tom, verbose, ilu_refinement,
+                 ilu_drop_tol):
+    if sparse:
+        regularization = scipy.sparse.eye(M.shape[0], format="csc")
+    else:
+        regularization = np.eye(M.shape[0])
+    M_reg = M + saund_tom * regularization
+
+    scaling = None
+    if ruiz:
+        M_reg, r, scaling = ruiz_equilibrate(
+            M_reg, r, iterations=2, sparse=sparse, verbose=verbose
+        )
+
+    def refine_solution(solution, apply_preconditioner):
+        residual = r - M_reg @ solution
+        residual_norm = np.linalg.norm(residual)
+        if verbose:
+            print(f"Pre-refinement residual norm: {residual_norm}")
+        for refine_step in range(ilu_refinement):
+            correction = apply_preconditioner(residual)
+            candidate = solution + correction
+            candidate_residual = r - M_reg @ candidate
+            candidate_norm = np.linalg.norm(candidate_residual)
+            if verbose:
+                print(f"Refinement iteration {refine_step + 1} residual norm: {candidate_norm}")
+            if not np.isfinite(candidate_norm) or candidate_norm >= residual_norm:
+                break
+            solution = candidate
+            residual = candidate_residual
+            residual_norm = candidate_norm
+        return solution
 
     if sparse:
         if ilu:
-            ilu_mat = scipy.sparse.linalg.spilu(M_reg, drop_tol = 1e-12)
+            ilu_mat = scipy.sparse.linalg.spilu(
+                M_reg, drop_tol=ilu_drop_tol
+            )
 
             M_ilu = scipy.sparse.linalg.LinearOperator(ilu_mat.shape, matvec=ilu_mat.solve, dtype=M_reg.dtype)
 
@@ -68,46 +120,102 @@ def solve_system(M, r, sparse, ruiz, ilu, saund_tom, verbose):
                 new_mat = np.column_stack([M_ilu @ (M_reg @ I[:, j]) for j in range(n)])
                 print(f"Condition number after pre-conditioning:  {np.linalg.cond(new_mat)}")
 
-            return M_ilu @ r
+            solution = refine_solution(M_ilu @ r, M_ilu.matvec)
+            return scaling * solution if scaling is not None else solution
 
         #     L = ichol(M_reg, discard_threshold=1e-8).L
         #     L_T = L.T.tocsc()
         #     Lr = scipy.sparse.linalg.spsolve_triangular(L, r, lower=True)
         #     return scipy.sparse.linalg.spsolve_triangular(L_T, Lr, lower=False)
 
-        elif ruiz:
-            return ruiz_solve(M_reg, r, sparse=sparse, iterations=8, verbose=verbose)
         else:
-            return scipy.sparse.linalg.spsolve(M_reg, r)
+            solution = scipy.sparse.linalg.spsolve(M_reg, r)
+            return scaling * solution if scaling is not None else solution
             # print(M_reg)
             # print(r)
             # step, info = scipy.sparse.linalg.gmres(M_reg, r, rtol=1e-8)
             # return step
     else:
         if ilu:
-            M_sparse = scipy.sparse.csc_matrix(M)
-            M_ilu = scipy.sparse.linalg.spilu(M_sparse, drop_tol = 1e-12)
+            M_sparse = scipy.sparse.csc_matrix(M_reg)
+            M_ilu = scipy.sparse.linalg.spilu(
+                M_sparse, drop_tol=ilu_drop_tol
+            )
             # print(M_ilu.L)
             # print()
             # print(M_ilu.U)
             # print()
-            return M_ilu.solve(r)
-        elif ruiz:
-            return ruiz_solve(M_reg, r, sparse=sparse, iterations=8, verbose=verbose)
+            solution = refine_solution(M_ilu.solve(r), M_ilu.solve)
+            return scaling * solution if scaling is not None else solution
         else:
-            return np.linalg.solve(M_reg, r)
+            solution = np.linalg.solve(M_reg, r)
+            return scaling * solution if scaling is not None else solution
 
-def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1, dynamic_beta: bool = False,
+def factorize_system(M, sparse, ruiz, ilu, saund_tom, verbose,
+                     ilu_refinement, ilu_drop_tol):
+    if sparse:
+        regularization = scipy.sparse.eye(M.shape[0], format="csc")
+    else:
+        regularization = np.eye(M.shape[0])
+    M_reg = M + saund_tom * regularization
+
+    scaling = None
+    if ruiz:
+        M_reg, _, scaling = ruiz_equilibrate(
+            M_reg, np.zeros(M.shape[0]), iterations=2,
+            sparse=sparse, verbose=verbose
+        )
+
+    if sparse:
+        if ilu:
+            factor = scipy.sparse.linalg.spilu(M_reg, drop_tol=ilu_drop_tol)
+            apply_factor = factor.solve
+        else:
+            factor = scipy.sparse.linalg.splu(M_reg)
+            apply_factor = factor.solve
+    elif ilu:
+        factor = scipy.sparse.linalg.spilu(
+            scipy.sparse.csc_matrix(M_reg), drop_tol=ilu_drop_tol
+        )
+        apply_factor = factor.solve
+    else:
+        factor = scipy.linalg.lu_factor(M_reg)
+        apply_factor = lambda vector: scipy.linalg.lu_solve(factor, vector)
+
+    def solve_rhs(vector):
+        scaled_vector = scaling * vector if scaling is not None else vector
+        solution = apply_factor(scaled_vector)
+        residual = scaled_vector - M_reg @ solution
+        residual_norm = np.linalg.norm(residual)
+        for _ in range(ilu_refinement):
+            correction = apply_factor(residual)
+            candidate = solution + correction
+            candidate_residual = scaled_vector - M_reg @ candidate
+            candidate_norm = np.linalg.norm(candidate_residual)
+            if not np.isfinite(candidate_norm) or candidate_norm >= residual_norm:
+                break
+            solution = candidate
+            residual = candidate_residual
+            residual_norm = candidate_norm
+        return scaling * solution if scaling is not None else solution
+
+    return solve_rhs
+
+def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1,
                 xi: float = 1 - 5e-8, omega: float = 1e4,
+                w_update: bool = True, predictor_corrector: bool = True,
                 D_bound: float = 1 - 5e-8, D_mult: float = .9,
                 epsilon: float = 1e-8, zeta_n: float = 5e-2, zeta_r: float = 1e-4,
                 alpha_sched: list[float] = [.9, .7, .5, .3, .1, .01],
                 alpha_min: float = 1e-4,
                 saund_tom: bool = False, saund_tom_factor: float = 1e-16,
                 neighborhood: str = "Large", tau: float = 1e-8,
-                sparse: bool = True, ruiz: bool = False, ilu: bool = True,
+                sparse: bool = True, ruiz: bool = False, ilu: bool = False,
+                ilu_refinement: int = 3, ilu_drop_tol: float = 1e-8,
                 verbose: bool = False):
     np.set_printoptions(linewidth=200)
+
+    # Note that ruiz + ilu causes problems because the ruiz scales the matrix further
 
     init_beta = beta
     if not saund_tom:
@@ -216,25 +324,102 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1, dynamic_bet
         z4_1 = np.reciprocal(z4)
         z5_1 = np.reciprocal(z5)
 
-        r = ATZ1_1Y @ b_Ax + GTZ_1W @ h_Gx + qz4_1 * u_x - lamz5_1 * x \
-            - mu * (A.T @ z1_1 + G.T @ (z2_1 - z3_1) + z4_1 - z5_1) \
+        r_aff = ATZ1_1Y @ b_Ax + GTZ_1W @ h_Gx + qz4_1 * u_x - lamz5_1 * x \
             - c - ATy - GTw1_w2 - q + lam
+        r_cent = A.T @ z1_1 + G.T @ (z2_1 - z3_1) + z4_1 - z5_1
+
+        corrector_y = np.zeros_like(y)
+        corrector_w1 = np.zeros_like(w1)
+        corrector_w2 = np.zeros_like(w2)
+        corrector_q = np.zeros_like(q)
+        corrector_lam = np.zeros_like(lam)
+
+        # This code (predictor-corrector) was originally written with AI and should be evaluated further
+        if predictor_corrector:
+            solve_M = factorize_system(
+                M, sparse, ruiz, ilu, saund_tom_factor, verbose,
+                ilu_refinement, ilu_drop_tol
+            )
+            delta_x_aff = solve_M(r_aff)
+            Adelta_x_aff = A @ delta_x_aff
+            Gdelta_x_aff = G @ delta_x_aff
+            delta_y_aff = (y * (Ax + Adelta_x_aff - b)) / z1
+            delta_w1_aff = (w1 * (Gx + Gdelta_x_aff - h)) / z2
+            delta_w2_aff = (-w2 * (Gx + Gdelta_x_aff - h)) / z3
+            delta_q_aff = (q * (x + delta_x_aff - u)) / z4
+            delta_lam_aff = c + ATy + GTw1_w2 + q - lam \
+                + A.T @ delta_y_aff + G.T @ (delta_w1_aff - delta_w2_aff) + delta_q_aff
+            delta_z1_aff = b - Ax - z1 - Adelta_x_aff
+            delta_z2_aff = h - Gx - z2 - Gdelta_x_aff
+            delta_z3_aff = Gx - h - z3 + Gdelta_x_aff
+            delta_z4_aff = u - x - z4 - delta_x_aff
+            delta_z5_aff = x - z5 + delta_x_aff
+
+            alpha_aff = min(
+                ratio(x, delta_x_aff), ratio(y, delta_y_aff),
+                ratio(w1, delta_w1_aff), ratio(w2, delta_w2_aff),
+                ratio(q, delta_q_aff), ratio(lam, delta_lam_aff),
+                ratio(z1, delta_z1_aff), ratio(z2, delta_z2_aff),
+                ratio(z3, delta_z3_aff), ratio(z4, delta_z4_aff),
+                ratio(z5, delta_z5_aff), 1.0
+            )
+            y_aff = y + alpha_aff * delta_y_aff
+            w1_aff = w1 + alpha_aff * delta_w1_aff
+            w2_aff = w2 + alpha_aff * delta_w2_aff
+            q_aff = q + alpha_aff * delta_q_aff
+            lam_aff = lam + alpha_aff * delta_lam_aff
+            z1_aff = z1 + alpha_aff * delta_z1_aff
+            z2_aff = z2 + alpha_aff * delta_z2_aff
+            z3_aff = z3 + alpha_aff * delta_z3_aff
+            z4_aff = z4 + alpha_aff * delta_z4_aff
+            z5_aff = z5 + alpha_aff * delta_z5_aff
+            mu_aff = (
+                np.dot(y_aff, z1_aff) + np.dot(w1_aff, z2_aff)
+                + np.dot(w2_aff, z3_aff) + np.dot(q_aff, z4_aff)
+                + np.dot(lam_aff, z5_aff)
+            ) / m
+            # This is equivalent to Gondzio
+            # We can get a better gap if we completely ignore the corrector steps
+            # And just keep min(beta, sigma). Why is that? Is that just because small beta is good?
+            sigma = np.clip((mu_aff / (r_c / m)) ** 3, 0.0, 1.0)
+            mu = sigma * r_c / m
+            # mu = min(beta, sigma) * r_c / m
+
+            corrector_y = delta_y_aff * delta_z1_aff / z1
+            corrector_w1 = delta_w1_aff * delta_z2_aff / z2
+            corrector_w2 = delta_w2_aff * delta_z3_aff / z3
+            corrector_q = delta_q_aff * delta_z4_aff / z4
+            corrector_lam = delta_lam_aff * delta_z5_aff / z5
+
+        r_corr = (
+            -mu * r_cent
+            + A.T @ corrector_y
+            + G.T @ (corrector_w1 - corrector_w2)
+            + corrector_q - corrector_lam
+        )
 
         # # Linear System Solve
         # if verbose and not sparse:
         #     print(f"Condition number before pre-conditioning: {np.linalg.cond(M)}")
         # elif verbose and sparse:
         #     print(f"Condition number before pre-conditioning: {np.linalg.cond(M.toarray())}")
-        delta_x = solve_system(M, r, sparse, ruiz, ilu, saund_tom_factor, verbose)
+        if predictor_corrector:
+            delta_x_corr = solve_M(r_corr)
+            delta_x = delta_x_aff + delta_x_corr
+        else:
+            delta_x = solve_system(
+                M, r_aff - mu * r_cent, sparse, ruiz, ilu,
+                saund_tom_factor, verbose, ilu_refinement, ilu_drop_tol
+            )
 
         # Recover the steps
         Adelta_x = A @ delta_x
         Gdelta_x = G @ delta_x
 
-        delta_y = (y * (Ax + Adelta_x - b) + mu) / z1
-        delta_w1 = (w1 * (Gx + Gdelta_x - h) + mu) / z2
-        delta_w2 = (mu - w2 * (Gx + Gdelta_x - h)) / z3
-        delta_q = (q * (x + delta_x - u) + mu) / z4
+        delta_y = (y * (Ax + Adelta_x - b) + mu) / z1 - corrector_y
+        delta_w1 = (w1 * (Gx + Gdelta_x - h) + mu) / z2 - corrector_w1
+        delta_w2 = (mu - w2 * (Gx + Gdelta_x - h)) / z3 - corrector_w2
+        delta_q = (q * (x + delta_x - u) + mu) / z4 - corrector_q
         delta_lam = c + ATy + GTw1_w2 + q - lam \
             + A.T @ delta_y + G.T @ (delta_w1 - delta_w2) + delta_q
         delta_z1 = b - Ax - z1 - Adelta_x
@@ -370,14 +555,6 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1, dynamic_bet
         if verbose:
             print(f"The step size was {alpha}")
 
-        if dynamic_beta:
-            if 0.5 <= alpha <= 1:
-                beta = init_beta / 5
-            elif 0.03 <= alpha < 0.5:
-                beta = init_beta / 3
-            else:
-                beta = init_beta
-
         x = x_alpha
         y = y_alpha
         w1 = w1_alpha
@@ -390,18 +567,20 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1, dynamic_bet
         z4 = z4_alpha
         z5 = z5_alpha
 
-        # Adjust the w variables
-        D = np.maximum(tau, np.minimum(w1, w2) - tau)
-        alpha_D = min(1, np.min((w1 * z2 - (zeta_n * mu_alpha)) / (D * z2)),
-            np.min((w2 * z3 - (zeta_n * mu_alpha)) / (D * z3)))
+        # Adjust the w variables (Is this better to do in the newton loop or is here OK?
+        # No difference in actual convergence, seems identical)
+        if w_update:
+            D = np.maximum(tau, np.minimum(w1, w2) - tau)
+            alpha_D = min(1, np.min((w1 * z2 - (zeta_n * mu_alpha)) / (D * z2)),
+                np.min((w2 * z3 - (zeta_n * mu_alpha)) / (D * z3)))
 
-        # Ensure we don't reach a centrality boundary
-        # Can change the bound or the multiplier 
-        if alpha_D < D_bound:
-            alpha_D *= D_mult
+            # Ensure we don't reach a centrality boundary
+            # Can change the bound or the multiplier 
+            if alpha_D < D_bound:
+                alpha_D *= D_mult
 
-        w1 -= alpha_D * D
-        w2 -= alpha_D * D
+            w1 -= alpha_D * D
+            w2 -= alpha_D * D
 
         if max(abs(entry) for entry in np.concat(
             (x, y, w1, w2, q, lam, z1, z2, z3, z4, z5)
@@ -447,8 +626,6 @@ def ipm_solve(f_name: str = "linear_approx.json", beta: float = 0.1, dynamic_bet
     dual_obj = np.dot(-c, x)  # pylint: disable=invalid-unary-operand-type
     print(f"The algorithm stopped after {iteration:d} iterations in {run_time:.2f} seconds.")
     print()
-    primal_obj = np.dot(b, y) + np.dot(h, w1 - w2) + np.dot(u, q)
-    dual_obj = np.dot(-c, x)  # pylint: disable=invalid-unary-operand-type
     print(f"{'Primal objective:':20}{primal_obj:<15.8e}")
     print(f"{'Dual objective:':20}{dual_obj:<15.8e}")
     print()
